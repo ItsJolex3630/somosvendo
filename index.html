@@ -135,15 +135,15 @@ footer{padding:36px 0;color:var(--mut);font-size:14px}footer .wrap{display:flex;
 .client-actions{margin-top:18px}
 .client-link{display:inline-flex;align-items:center;gap:6px;color:var(--lime);text-decoration:none;font-weight:700;font-size:15px;padding:8px 16px;background:rgba(206,241,123,.08);border-radius:999px;border:1px solid rgba(206,241,123,.25);transition:background .15s,color .15s}
 .client-link:hover{background:var(--lime);color:var(--ink)}
-@media(max-width:760px){.clients-head-bar{flex-direction:column;align-items:flex-start;gap:16px}.clients-nav-controls{display:none}.client-card{flex:0 0 70vw;max-width:300px;padding:20px;scroll-snap-align:center}}
+@media(max-width:760px){.clients-head-bar{flex-direction:column;align-items:flex-start;gap:16px}.clients-nav-controls{display:none}.client-card{flex:0 0 82vw;max-width:380px;padding:18px;scroll-snap-align:center}}
 
-/* Carrusel G-Tech */
+/* Carruseles de clientes */
 .client-carousel-wrap{position:relative;border-radius:14px;overflow:hidden;background:#01110a;margin-bottom:20px;aspect-ratio:16/10}
 .carousel{position:absolute;inset:0}
 .carousel-track{position:relative;width:100%;height:100%}
 .carousel-slide{position:absolute;inset:0;opacity:0;transition:opacity .5s ease-in-out;display:flex;align-items:center;justify-content:center}
 .carousel-slide.active{opacity:1;z-index:1}
-.carousel-slide img{width:100%;height:100%;object-fit:contain;background:#01110a}
+.carousel-slide img{width:100%;height:100%;object-fit:cover;object-position:top center;background:#01110a;display:block}
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:3;background:rgba(1,17,10,.7);color:var(--cream);border:1px solid var(--forest);width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:background .2s,color .2s}
 .carousel-btn:hover{background:var(--lime);color:var(--ink)}
 .carousel-btn.prev{left:10px}
@@ -483,13 +483,27 @@ Google Search Console
 </article>
 
 <article class="client-card">
-<div class="client-info" style="height:100%;display:flex;flex-direction:column;justify-content:space-between">
-<div>
+<div class="client-carousel-wrap">
+<div class="carousel" id="jolie-carousel" aria-label="Galería de Jolie Fragrances" data-i18n-aria="aria_jolie_gallery">
+<div class="carousel-track">
+<div class="carousel-slide active"><img src="assets/clients/jolie-1.jpg" alt="Jolie Fragrances - Portada y asesoría de perfumes exclusivos" data-i18n-alt="jolie1_alt" loading="lazy"></div>
+<div class="carousel-slide"><img src="assets/clients/jolie-2.jpg" alt="Jolie Fragrances - Selección de combos y maridajes olfativos" data-i18n-alt="jolie2_alt" loading="lazy"></div>
+<div class="carousel-slide"><img src="assets/clients/jolie-3.jpg" alt="Jolie Fragrances - Catálogo interactivo de fragancias y pedidos directos" data-i18n-alt="jolie3_alt" loading="lazy"></div>
+</div>
+<button class="carousel-btn prev" aria-label="Imagen anterior" data-i18n-aria="aria_prev_img">‹</button>
+<button class="carousel-btn next" aria-label="Siguiente imagen" data-i18n-aria="aria_next_img">›</button>
+<div class="carousel-dots">
+<button class="dot active" data-index="0" aria-label="Ir a diapositiva 1" data-i18n-aria="aria_dot1"></button>
+<button class="dot" data-index="1" aria-label="Ir a diapositiva 2" data-i18n-aria="aria_dot2"></button>
+<button class="dot" data-index="2" aria-label="Ir a diapositiva 3" data-i18n-aria="aria_dot3"></button>
+</div>
+</div>
+</div>
+<div class="client-info">
 <div class="client-badge" data-i18n="jolie_badge">🛍️ Catálogo Digital &amp; Venta Directa</div>
 <h3>Jolie Fragrances</h3>
 <p data-i18n="jolie_desc">Plataforma web para catálogo interactivo de perfumería exclusiva. Diseñada para navegación ágil en dispositivos móviles y canalización inmediata de pedidos a WhatsApp.</p>
-</div>
-<div class="client-actions" style="margin-top:24px">
+<div class="client-actions">
 <a href="https://jolie-fragrances-seven.vercel.app/" target="_blank" rel="noopener" class="client-link"><span data-i18n="jolie_link">Visitar jolie-fragrances</span> <span aria-hidden="true">↗</span></a>
 </div>
 </div>
@@ -638,8 +652,9 @@ Google Search Console
 </div>
 
 <script>
-(function initCarousel(){
-const track=document.querySelector('#gtech-carousel');
+(function initCarousels(){
+function setupCarousel(selector){
+const track=document.querySelector(selector);
 if(!track)return;
 const slides=track.querySelectorAll('.carousel-slide');
 const dots=track.querySelectorAll('.dot');
@@ -658,6 +673,9 @@ dots.forEach((dot,i)=>{dot.addEventListener('click',()=>{showSlide(i);startAutoP
 track.addEventListener('mouseenter',stopAutoPlay);
 track.addEventListener('mouseleave',startAutoPlay);
 startAutoPlay();
+}
+setupCarousel('#gtech-carousel');
+setupCarousel('#jolie-carousel');
 })();
 
 // Navegación de Slider de Clientes (Desktop buttons + Scroll check)
@@ -822,6 +840,10 @@ contact_cta_title:'Consulta precios y disponibilidad',
 contact_cta_desc:'Nuestro asesor te atenderá por WhatsApp para comercios de San Diego, Valencia, toda Venezuela o proyectos internacionales.',
 contact_cta_btn:'Consultar precios por WhatsApp',
 contact_ig_prefix:'O síguenos en',
+aria_jolie_gallery:'Galería de Jolie Fragrances',
+jolie1_alt:'Jolie Fragrances - Portada y asesoría de perfumes exclusivos',
+jolie2_alt:'Jolie Fragrances - Selección de combos y maridajes olfativos',
+jolie3_alt:'Jolie Fragrances - Catálogo interactivo de fragancias y pedidos directos',
 gtech1_alt:'G-Tech.us - Vista de catálogo y productos',
 gtech2_alt:'G-Tech.us - Identidad y plataforma digital',
 gtech3_alt:'G-Tech.us - Interfaz móvil y experiencia de usuario',
@@ -980,6 +1002,10 @@ contact_cta_title:'Inquire about plans and pricing',
 contact_cta_desc:'Our sales advisor is available via WhatsApp for businesses in Carabobo, Venezuela, and international projects.',
 contact_cta_btn:'Inquire pricing via WhatsApp',
 contact_ig_prefix:'Follow us on',
+aria_jolie_gallery:'Jolie Fragrances gallery',
+jolie1_alt:'Jolie Fragrances - Hero showcase and luxury perfume consulting',
+jolie2_alt:'Jolie Fragrances - Exclusive perfume pairings and combo sets',
+jolie3_alt:'Jolie Fragrances - Interactive catalog and direct WhatsApp ordering',
 gtech1_alt:'G-Tech.us - Product catalog and showcase',
 gtech2_alt:'G-Tech.us - Brand identity and digital platform',
 gtech3_alt:'G-Tech.us - Mobile interface and user experience',
