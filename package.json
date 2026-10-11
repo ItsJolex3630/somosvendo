@@ -1,0 +1,11 @@
+{
+  "name": "somosvendo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VENDO Conecta / Vendo Club - plataforma multi-tenant de membresias",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "migrate": "node scripts/migrate.mjs"
+  }
+}

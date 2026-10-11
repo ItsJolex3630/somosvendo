@@ -1,0 +1,4 @@
+TURSO_DATABASE_URL=libsql://your-database.turso.io
+TURSO_AUTH_TOKEN=your-turso-auth-token
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+CRON_SECRET=your-cron-secret
