@@ -1,4 +1,4 @@
-import { queryOne } from './_db.js';
+import { queryOne, run } from './_db.js';
 
 const GOOGLE_CERTS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 const GOOGLE_ISSUERS = ['accounts.google.com', 'https://accounts.google.com'];
@@ -156,17 +156,60 @@ export async function requirePanelAdmin(request, env) {
   }
 
   if (!admin) {
+    let legacy = null;
     try {
-      admin = await queryOne(
+      legacy = await queryOne(
         env,
         'SELECT id, email, nombre AS display_name FROM admins WHERE email = ? AND activo = 1 LIMIT 1',
         [email],
       );
     } catch {
-      admin = null;
+      legacy = null;
+    }
+
+    if (legacy) {
+      // `admins` autoriza el acceso, pero las tablas del panel (movements.created_by,
+      // audit_log.user_id) referencian `users(id)`. Si el admin solo existe en `admins`,
+      // se provisiona su fila en `users` para no violar la clave foránea al guardar.
+      const displayName = legacy.display_name || email;
+      try {
+        await run(
+          env,
+          'INSERT OR IGNORE INTO users (id, email, display_name, password_hash) VALUES (?, ?, ?, ?)',
+          [panelUserId(), email, displayName, panelPasswordPlaceholder()],
+        );
+      } catch {
+        /* si falla (carrera/permisos) se intenta leer de nuevo abajo */
+      }
+      try {
+        admin = await queryOne(env, 'SELECT id, email, display_name FROM users WHERE email = ? LIMIT 1', [email]);
+      } catch {
+        admin = null;
+      }
+      // Último recurso: sin fila en `users`, se usa id nulo (las FK son nullables).
+      if (!admin) admin = { id: null, email, display_name: displayName };
     }
   }
 
   if (!admin) return { ok: false, status: 403, error: 'Esta cuenta no tiene acceso al panel' };
   return { ok: true, admin, identity: payload };
+}
+
+function panelUserId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID().replace(/-/g, '').slice(0, 21);
+  }
+  return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`.slice(0, 21);
+}
+
+function panelPasswordPlaceholder() {
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }

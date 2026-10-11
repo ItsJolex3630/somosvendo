@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { VendoProvider } from "@/components/vendo/store";
 import { AuthProvider, AuthGate } from "@/components/vendo/auth";
+import { ErrorBoundary } from "@/components/vendo/error-boundary";
 import { VendoShell } from "@/components/vendo/shell";
 import { Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -126,14 +127,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AuthGate>
-          <VendoProvider>
-            <VendoShell><Outlet /></VendoShell>
-          </VendoProvider>
-        </AuthGate>
-        <Toaster theme="dark" position="top-right" />
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <AuthGate>
+            <VendoProvider>
+              <VendoShell><Outlet /></VendoShell>
+            </VendoProvider>
+          </AuthGate>
+          <Toaster theme="dark" position="top-right" />
+        </AuthProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }

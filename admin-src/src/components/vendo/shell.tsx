@@ -19,7 +19,7 @@ export function Brand() {
 }
 
 export function VendoShell({ children }: { children: ReactNode }) {
-  const { search, setSearch, alerts } = useVendo();
+  const { search, setSearch, alerts, error, refresh } = useVendo();
   const { email } = useAuth();
   const [notifications, setNotifications] = useState(false);
   const initials = (email || 'V').slice(0, 2).toUpperCase();
@@ -74,7 +74,15 @@ export function VendoShell({ children }: { children: ReactNode }) {
             </div>
           )}
         </header>
-        <main>{children}</main>
+        <main>
+          {error && (
+            <div className="error-banner">
+              <span>No se pudieron cargar los datos: {error}</span>
+              <button type="button" onClick={refresh}>Reintentar</button>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
 
       <nav className="bottom-dock" aria-label="Navegación móvil">
