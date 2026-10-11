@@ -1,6 +1,7 @@
 # VENDO Conecta · cabeceras de seguridad y caché (Cloudflare Pages)
 
 /*
+  Cache-Control: no-cache, must-revalidate
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
