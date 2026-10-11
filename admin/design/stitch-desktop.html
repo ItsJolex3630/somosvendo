@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VENDO — Executive Treasury &amp; CRM</title>
+<!-- Google Fonts: Outfit, Plus Jakarta Sans, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Theme Configuration Verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed": "#c8ebd7",
+            "on-primary": "#263500",
+            "primary": "#ffffff",
+            "secondary-fixed-dim": "#accebb",
+            "on-error-container": "#ffdad6",
+            "on-primary-fixed-variant": "#394d00",
+            "on-tertiary-fixed": "#002114",
+            "inverse-surface": "#d2e8db",
+            "surface-variant": "#263930",
+            "on-tertiary-fixed-variant": "#005137",
+            "on-tertiary-container": "#007350",
+            "surface": "#04170f",
+            "on-error": "#690005",
+            "surface-tint": "#b1d361",
+            "inverse-on-surface": "#21342c",
+            "surface-container-high": "#1b2e25",
+            "on-secondary-container": "#9bbdaa",
+            "outline-variant": "#444839",
+            "surface-container-lowest": "#01110a",
+            "primary-fixed": "#cdef7a",
+            "on-background": "#d2e8db",
+            "tertiary-fixed-dim": "#45dfa4",
+            "on-primary-container": "#526d00",
+            "error-container": "#93000a",
+            "on-secondary": "#173629",
+            "on-surface-variant": "#c5c8b4",
+            "inverse-primary": "#4d6700",
+            "on-surface": "#d2e8db",
+            "surface-container-highest": "#263930",
+            "background": "#04170f",
+            "surface-dim": "#04170f",
+            "on-secondary-fixed": "#012115",
+            "on-primary-fixed": "#151f00",
+            "tertiary-fixed": "#68fcbf",
+            "surface-bright": "#2a3d34",
+            "surface-container-low": "#0c1f17",
+            "secondary-container": "#2e4d3f",
+            "on-secondary-fixed-variant": "#2e4d3f",
+            "secondary": "#accebb",
+            "primary-container": "#cdef7a",
+            "error": "#ffb4ab",
+            "surface-container": "#10231b",
+            "tertiary": "#ffffff",
+            "on-tertiary": "#003825",
+            "outline": "#8f9380",
+            "tertiary-container": "#68fcbf",
+            "primary-fixed-dim": "#b1d361"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-md": "0.75rem",
+            "space-sm": "0.5rem",
+            "gutter-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin-lg": "2rem",
+            "space-lg": "1.25rem",
+            "margin-md": "1.5rem",
+            "margin": "1rem",
+            "gutter": "1rem",
+            "space-xl": "2rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Outfit"],
+            "body-md": ["Plus Jakarta Sans"],
+            "display-hero": ["Outfit"],
+            "headline-lg-mobile": ["Outfit"],
+            "data-metric-lg": ["JetBrains Mono"],
+            "data-metric-md": ["JetBrains Mono"],
+            "display-hero-mobile": ["Outfit"],
+            "headline-md": ["Outfit"],
+            "data-metric-sm": ["JetBrains Mono"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "headline-lg": ["Outfit"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-caps": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "display-hero": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "data-metric-lg": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "data-metric-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "display-hero-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "500" }],
+            "data-metric-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "400" }],
+            "label-caps": ["10px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Custom sub-pixel borders, fine ambient glows and scrollbars */
+    .glow-lime {
+      box-shadow: 0 0 16px rgba(206, 241, 123, 0.28);
+    }
+    .glow-lime-subtle {
+      box-shadow: 0 0 12px rgba(206, 241, 123, 0.12);
+    }
+    .glow-lime-card {
+      background: radial-gradient(circle at 10% 0%, rgba(206, 241, 123, 0.05), transparent 60%), #022216;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #01110a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #1b2e25;
+      border-radius: 4px;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden min-h-screen flex">
+<!-- ========================================================================= -->
+<!-- 1. SHARED COMPONENT: SideNavBar (Fixed Left Sidebar)                       -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-60 z-40 bg-surface-container-lowest border-r border-outline-variant/30 flex flex-col justify-between p-space-md select-none transition-all duration-150">
+<!-- Top Branding & CTA -->
+<div class="flex flex-col gap-space-lg">
+<!-- Brand Insignia & Labels -->
+<div class="flex items-center gap-space-sm px-space-xs pt-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high border border-primary-fixed/30 flex items-center justify-center relative glow-lime-subtle">
+<!-- Stylized geometric 'V' insignia -->
+<svg class="w-5 h-5 text-primary-fixed" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24">
+<polyline points="4 4 12 20 20 4"></polyline>
+</svg>
+<div class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary-fixed animate-ping"></div>
+<div class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary-fixed"></div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="text-headline-md font-headline-md tracking-tight font-bold text-primary">VENDO</span>
+<span class="text-label-caps font-label-caps px-1 py-0.5 rounded bg-surface-container-highest text-primary-fixed border border-primary-fixed/20 text-[9px]">PRO</span>
+</div>
+<span class="text-label-caps font-label-caps text-secondary text-[9px] tracking-wider uppercase">Executive Treasury</span>
+</div>
+</div>
+<!-- Quick Action: CTA from JSON -->
+<button class="w-full flex items-center justify-center gap-space-xs py-space-sm px-space-md rounded-lg bg-primary-fixed text-on-primary-fixed font-headline-sm font-semibold text-[13px] tracking-tight hover:brightness-105 active:scale-[0.98] transition-all glow-lime">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Nuevo Movimiento</span>
+</button>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1 mt-1">
+<!-- Tab 1: Dashboard (ACTIVE MATCH) -->
+<a class="flex items-center justify-between px-space-md py-space-sm rounded-lg bg-surface-container-high/80 text-primary-fixed font-medium shadow-[inset_0_0_12px_rgba(206,241,123,0.08)] border border-primary-fixed/30 transition-all duration-150 active:scale-[0.98]" href="#dashboard">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[19px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-body-md font-body-md font-medium">Dashboard</span>
+</div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary-fixed glow-lime-subtle"></div>
+</a>
+<!-- Tab 2: Movimientos -->
+<a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-secondary hover:text-primary hover:bg-surface-container transition-colors group" href="#movimientos">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[19px] group-hover:text-primary transition-colors">receipt_long</span>
+<span class="text-body-md font-body-md">Movimientos</span>
+</div>
+<span class="text-label-caps font-label-caps text-[9px] px-1.5 py-0.5 rounded-full bg-surface-container-highest text-primary-fixed border border-primary-fixed/20">12 nuevos</span>
+</a>
+<!-- Tab 3: Clientes -->
+<a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-secondary hover:text-primary hover:bg-surface-container transition-colors group" href="#clientes">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[19px] group-hover:text-primary transition-colors">group</span>
+<span class="text-body-md font-body-md">Clientes</span>
+</div>
+<span class="text-label-caps font-label-caps text-[10px] text-secondary group-hover:text-primary">148</span>
+</a>
+<!-- Tab 4: Cobros -->
+<a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-secondary hover:text-primary hover:bg-surface-container transition-colors" href="#cobros">
+<span class="material-symbols-outlined text-[19px]">payments</span>
+<span class="text-body-md font-body-md">Cobros</span>
+</a>
+<!-- Tab 5: Ajustes -->
+<a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-secondary hover:text-primary hover:bg-surface-container transition-colors" href="#ajustes">
+<span class="material-symbols-outlined text-[19px]">settings</span>
+<span class="text-body-md font-body-md">Ajustes</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Secondary Links & Profile Card -->
+<div class="flex flex-col gap-space-md">
+<!-- Footer items from JSON -->
+<div class="flex flex-col gap-0.5 border-t border-outline-variant/30 pt-space-sm">
+<a class="flex items-center gap-space-sm px-space-md py-1.5 rounded-lg text-secondary hover:text-primary hover:bg-surface-container text-[13px] transition-colors" href="#soporte">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span class="font-body-sm text-body-sm">Soporte</span>
+</a>
+<a class="flex items-center gap-space-sm px-space-md py-1.5 rounded-lg text-secondary hover:text-error hover:bg-surface-container text-[13px] transition-colors" href="#logout">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span class="font-body-sm text-body-sm">Cerrar Sesión</span>
+</a>
+</div>
+<!-- Executive Profile Card -->
+<div class="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="relative">
+<img class="w-8 h-8 rounded-lg object-cover border border-primary-fixed/40" data-alt="Close up executive portrait of Alejandro Silva, head of treasury, wearing a tailored charcoal collar in a dark emerald ambient luxury office studio with controlled neon mint edge lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI5_u6XmQ6ExqqWO5LVK5eEMYTngW0KWKYhzFyLQHbeodC9nhMt1t6ySeDd9uz2Nc9aPbdNYOQGiASBHB70OmiH4ddYtr0-Y1N9pQzXl-LjvVq4HtSvd62XIESLSga01eRKNqmvrMKejfvNOcgle89q6GzXQHuerY7y2gmB06C_S_dPmF5M8I1VhzDzCeqQzMgdPSbESliv0betJXw33ejo_eugoMOX32uRNRqNc2_eQKQqPeaZwGuLGt7XC4UhiXmdmK7X85CdQGP"/>
+<span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary-fixed border border-surface-container-lowest"></span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-sm font-body-sm font-semibold text-primary leading-tight">Alejandro Silva</span>
+<span class="text-label-caps font-label-caps text-[9px] text-secondary">Head of Treasury</span>
+</div>
+</div>
+<div class="flex items-center justify-center p-1 rounded hover:bg-surface-container text-secondary hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE CANVAS                                                      -->
+<!-- ========================================================================= -->
+<main class="ml-60 flex-1 flex flex-col min-h-screen bg-surface-container-lowest">
+<!-- ======================================================================= -->
+<!-- 2. SHARED COMPONENT: TopNavBar (Header)                                 -->
+<!-- ======================================================================= -->
+<header class="sticky top-0 z-30 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-gutter-lg py-space-md">
+<!-- Left: Title, Live Telemetry and Navigation Links -->
+<div class="flex items-center gap-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<h1 class="text-headline-sm font-headline-sm font-semibold text-primary tracking-tight">Dashboard Ejecutivo</h1>
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container border border-primary-fixed/20">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-fixed animate-pulse"></span>
+<span class="text-label-caps font-label-caps text-[10px] text-primary-fixed">Sistema en línea • 18ms</span>
+</div>
+</div>
+<span class="text-body-sm font-body-sm text-secondary mt-0.5">Miércoles, 24 Octubre 2024</span>
+</div>
+<!-- Links from JSON -->
+<nav class="hidden xl:flex items-center gap-space-md pl-space-md border-l border-outline-variant/30">
+<a class="text-primary-fixed font-medium text-body-sm font-body-sm hover:text-primary" href="#consolidado">Consolidado</a>
+<a class="text-secondary hover:text-on-surface text-body-sm font-body-sm" href="#auditoria">Auditoría</a>
+</nav>
+</div>
+<!-- Center: Quick Command Search Bar with shortcut tag -->
+<div class="flex-1 max-w-md mx-space-lg">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-secondary text-[18px]">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg pl-9 pr-14 py-1.5 text-body-sm font-body-sm text-primary placeholder-secondary/50 focus:outline-none focus:border-primary-fixed/50 focus:ring-1 focus:ring-primary-fixed/40 transition-all" placeholder="Buscar movimientos, clientes o facturas..." type="text"/>
+<div class="absolute right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant/40 text-label-caps font-label-caps text-[9px] text-secondary">
+<span>⌘</span><span>K</span>
+</div>
+</div>
+</div>
+<!-- Right: Utility Actions & CTA -->
+<div class="flex items-center gap-space-sm">
+<!-- Vault Sync Status Pill -->
+<div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-high border border-primary-fixed/20">
+<span class="material-symbols-outlined text-primary-fixed text-[15px]" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="text-label-caps font-label-caps text-[10px] text-secondary">Bóveda Sincronizada</span>
+<span class="material-symbols-outlined text-primary-fixed text-[14px]">check_circle</span>
+</div>
+<!-- Notification Bell with Counter -->
+<button class="relative p-2 rounded-lg bg-surface-container-low border border-outline-variant/30 text-secondary hover:text-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[19px]">notifications</span>
+<span class="absolute 1 top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-fixed glow-lime-subtle"></span>
+</button>
+<!-- Filters icon -->
+<button class="p-2 rounded-lg bg-surface-container-low border border-outline-variant/30 text-secondary hover:text-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[19px]">tune</span>
+</button>
+<!-- Trailing Primary Action: Registrar Cobro -->
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary-fixed text-on-primary-fixed font-headline-sm font-semibold text-[13px] tracking-tight hover:brightness-105 active:scale-[0.98] transition-all glow-lime ml-1">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Registrar Cobro</span>
+</button>
+</div>
+</header>
+<!-- ======================================================================= -->
+<!-- 3. DASHBOARD MAIN CANVAS CONTENT                                        -->
+<!-- ======================================================================= -->
+<div class="p-gutter-lg space-y-space-lg flex-1">
+<!-- SECTION A: METRIC / KPI ROW (3 Glassmorphism Bento Cards) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- KPI 1: Balance Neto -->
+<div class="relative rounded-xl border border-primary-fixed/15 bg-surface-container/60 backdrop-blur-md p-space-lg overflow-hidden glow-lime-card group hover:border-primary-fixed/30 transition-all">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="text-label-caps font-label-caps text-secondary text-[11px] tracking-wider uppercase">Balance Neto Operativo</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-data-metric-lg font-data-metric-lg text-primary tracking-tight">$1,280.00</span>
+<span class="text-label-caps font-label-caps text-secondary text-xs">USD</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest border border-primary-fixed/20 flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+</div>
+</div>
+<!-- Trend & Sparkline -->
+<div class="mt-4 flex items-end justify-between">
+<div class="space-y-1">
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/10 border border-primary-fixed/25 text-primary-fixed text-label-caps font-label-caps text-[10px]">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+<span>+12.4% vs mes ant.</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary/70 text-[11px]">Liquidez inmediata disponible</p>
+</div>
+<!-- Mini SVG Sparkline -->
+<div class="w-24 h-9">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 100 36">
+<defs>
+<lineargradient id="spark1" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#cef17b" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#cef17b" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,28 Q15,24 30,26 T60,14 T85,18 T100,4 L100,36 L0,36 Z" fill="url(#spark1)"></path>
+<path d="M0,28 Q15,24 30,26 T60,14 T85,18 T100,4" fill="none" stroke="#cef17b" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="100" cy="4" fill="#cef17b" r="2.5"></circle>
+</svg>
+</div>
+</div>
+</div>
+<!-- KPI 2: Total Cobrado / Sales -->
+<div class="relative rounded-xl border border-primary-fixed/15 bg-surface-container/60 backdrop-blur-md p-space-lg overflow-hidden glow-lime-card group hover:border-primary-fixed/30 transition-all">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="text-label-caps font-label-caps text-secondary text-[11px] tracking-wider uppercase">Total Cobrado (MTD)</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-data-metric-lg font-data-metric-lg text-primary tracking-tight">$3,450.00</span>
+<span class="text-label-caps font-label-caps text-secondary text-xs">USD</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest border border-primary-fixed/20 flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">paid</span>
+</div>
+</div>
+<!-- Trend & Transactions -->
+<div class="mt-4 flex items-end justify-between">
+<div class="space-y-1">
+<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/15 border border-primary-fixed/30 text-primary-fixed text-label-caps font-label-caps text-[10px]">
+<span class="material-symbols-outlined text-[13px]">arrow_outward</span>
+<span>+18.2% incremento</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary/70 text-[11px]">38 transacciones exitosas</p>
+</div>
+<!-- Mini SVG Sparkline -->
+<div class="w-24 h-9">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 100 36">
+<defs>
+<lineargradient id="spark2" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#68fcbf" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#68fcbf" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,32 Q25,28 45,20 T80,10 T100,2 L100,36 L0,36 Z" fill="url(#spark2)"></path>
+<path d="M0,32 Q25,28 45,20 T80,10 T100,2" fill="none" stroke="#68fcbf" stroke-linecap="round" stroke-width="2"></path>
+<circle cx="100" cy="2" fill="#68fcbf" r="2.5"></circle>
+</svg>
+</div>
+</div>
+</div>
+<!-- KPI 3: Pagos Pendientes / Invoicing Warning -->
+<div class="relative rounded-xl border border-primary-fixed/15 bg-surface-container/60 backdrop-blur-md p-space-lg overflow-hidden glow-lime-card group hover:border-primary-fixed/30 transition-all">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="text-label-caps font-label-caps text-secondary text-[11px] tracking-wider uppercase">Facturación Pendiente</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-data-metric-lg font-data-metric-lg text-primary tracking-tight">$420.00</span>
+<span class="text-label-caps font-label-caps text-secondary text-xs">USD</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest border border-amber-400/30 flex items-center justify-center text-amber-300">
+<span class="material-symbols-outlined text-[18px]">pending_actions</span>
+</div>
+</div>
+<!-- Caution Badge & Status -->
+<div class="mt-4 flex items-end justify-between">
+<div class="space-y-1">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-300 text-label-caps font-label-caps text-[10px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+<span>3 facturas por vencer</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary/70 text-[11px]">Alerta preventiva en cobro</p>
+</div>
+<!-- Action Quick Link -->
+<a class="text-label-caps font-label-caps text-[10px] text-primary-fixed hover:underline flex items-center gap-1" href="#cobros">
+<span>Gestionar</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+</a>
+</div>
+</div>
+</section>
+<!-- SECTION B: MAIN ANALYTICS CHART CARD (Cashflow Projection) -->
+<section class="rounded-xl border border-primary-fixed/15 bg-surface-container-low/90 backdrop-blur-md p-space-lg">
+<!-- Chart Header Controls -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-md border-b border-outline-variant/20">
+<div>
+<h2 class="text-headline-sm font-headline-sm font-semibold text-primary">Flujo de Caja y Proyección de Ingresos</h2>
+<p class="text-body-sm font-body-sm text-secondary">Comparativa mensual de tesorería y márgenes netos liquidados</p>
+</div>
+<!-- Right Controls: Toggle Pills & Metric Legend -->
+<div class="flex flex-wrap items-center gap-space-md">
+<!-- Legend Indicators -->
+<div class="flex items-center gap-space-md text-label-caps font-label-caps text-[11px]">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary-fixed"></span>
+<span class="text-on-surface">Ingresos Reales</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary-container border border-secondary"></span>
+<span class="text-secondary">Gastos Operativos</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary-fixed"></span>
+<span class="text-on-surface">Margen Neto</span>
+</div>
+</div>
+<!-- Timeframe Filter Pills -->
+<div class="flex items-center p-0.5 rounded-lg bg-surface-container border border-outline-variant/30">
+<button class="px-2.5 py-1 text-label-caps font-label-caps text-[11px] rounded bg-surface-container-high text-primary-fixed border border-primary-fixed/30 font-medium shadow-sm">Mensual</button>
+<button class="px-2.5 py-1 text-label-caps font-label-caps text-[11px] rounded text-secondary hover:text-primary transition-colors">Trimestral</button>
+<button class="px-2.5 py-1 text-label-caps font-label-caps text-[11px] rounded text-secondary hover:text-primary transition-colors">Anual</button>
+</div>
+</div>
+</div>
+<!-- Rich Interactive Vector Chart -->
+<div class="relative mt-6 h-72 w-full select-none">
+<!-- Background Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="border-b border-outline-variant/40 w-full flex justify-between text-[10px] text-secondary">
+<span class="font-data-metric-sm">$4,000</span>
+</div>
+<div class="border-b border-outline-variant/40 w-full flex justify-between text-[10px] text-secondary">
+<span class="font-data-metric-sm">$3,000</span>
+</div>
+<div class="border-b border-outline-variant/40 w-full flex justify-between text-[10px] text-secondary">
+<span class="font-data-metric-sm">$2,000</span>
+</div>
+<div class="border-b border-outline-variant/40 w-full flex justify-between text-[10px] text-secondary">
+<span class="font-data-metric-sm">$1,000</span>
+</div>
+<div class="border-b border-outline-variant/40 w-full flex justify-between text-[10px] text-secondary">
+<span class="font-data-metric-sm">$0</span>
+</div>
+</div>
+<!-- SVG Graphic Curves -->
+<svg class="absolute inset-0 w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 1000 240">
+<defs>
+<!-- Neon Lime Area Gradient (Ingresos) -->
+<lineargradient id="limeArea" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#cef17b" stop-opacity="0.32"></stop>
+<stop offset="85%" stop-color="#cef17b" stop-opacity="0.0"></stop>
+</lineargradient>
+<!-- Muted Emerald Gradient (Margen) -->
+<lineargradient id="emeraldArea" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#68fcbf" stop-opacity="0.18"></stop>
+<stop offset="100%" stop-color="#68fcbf" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Line 1: Gastos Operativos (Muted Dashed) -->
+<path d="M 50,180 C 220,165 380,175 550,150 C 720,140 850,135 950,130" fill="none" opacity="0.45" stroke="#accebb" stroke-dasharray="5 5" stroke-width="1.8"></path>
+<!-- Line 2: Margen Neto Area & Stroke -->
+<path d="M 50,195 C 220,180 380,160 550,140 C 720,120 850,90 950,75 L 950,240 L 50,240 Z" fill="url(#emeraldArea)"></path>
+<path d="M 50,195 C 220,180 380,160 550,140 C 720,120 850,90 950,75" fill="none" stroke="#68fcbf" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Line 3: Ingresos Reales Area & Stroke (Top Neon Highlight) -->
+<path d="M 50,160 C 220,130 380,110 550,85 C 720,60 850,45 950,25 L 950,240 L 50,240 Z" fill="url(#limeArea)"></path>
+<path class="filter drop-shadow-[0_0_8px_rgba(206,241,123,0.4)]" d="M 50,160 C 220,130 380,110 550,85 C 720,60 850,45 950,25" fill="none" stroke="#cef17b" stroke-linecap="round" stroke-width="3"></path>
+<!-- Interactive Anchor Nodes -->
+<circle cx="50" cy="160" fill="#01110a" r="4" stroke="#cef17b" stroke-width="2.5"></circle>
+<circle cx="230" cy="128" fill="#01110a" r="4" stroke="#cef17b" stroke-width="2.5"></circle>
+<circle cx="410" cy="106" fill="#01110a" r="4" stroke="#cef17b" stroke-width="2.5"></circle>
+<circle cx="590" cy="80" fill="#01110a" r="4" stroke="#cef17b" stroke-width="2.5"></circle>
+<circle cx="770" cy="55" fill="#01110a" r="4" stroke="#cef17b" stroke-width="2.5"></circle>
+<!-- Focus Hover Octobre Node (Pulsing Glow) -->
+<circle class="glow-lime" cx="950" cy="25" fill="#cef17b" r="6"></circle>
+<circle class="animate-ping" cx="950" cy="25" fill="none" opacity="0.6" r="10" stroke="#cef17b" stroke-width="1.5"></circle>
+</svg>
+<!-- Precision Data Tooltip on Octobre Point -->
+<div class="absolute right-4 top-2 bg-surface-container-highest/95 border border-primary-fixed/40 rounded-lg p-2.5 shadow-2xl backdrop-blur-md pointer-events-none transform -translate-y-2">
+<div class="flex items-center justify-between gap-3 border-b border-outline-variant/30 pb-1 mb-1.5">
+<span class="text-label-caps font-label-caps text-primary-fixed text-[10px]">Octubre 2024</span>
+<span class="text-label-caps font-label-caps text-secondary text-[9px]">Cierre Activo</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center justify-between gap-4">
+<span class="text-body-sm text-[11px] text-secondary">Ingreso:</span>
+<span class="text-data-metric-sm font-data-metric-sm text-primary font-semibold">$3,450.00</span>
+</div>
+<div class="flex items-center justify-between gap-4">
+<span class="text-body-sm text-[11px] text-secondary">Margen Neto:</span>
+<span class="text-data-metric-sm font-data-metric-sm text-tertiary-fixed font-semibold">$1,280.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Month X-Axis Axis Labels -->
+<div class="flex justify-between px-6 pt-3 text-label-caps font-label-caps text-secondary text-[11px] border-t border-outline-variant/20 mt-1">
+<span>Mayo</span>
+<span>Junio</span>
+<span>Julio</span>
+<span>Agosto</span>
+<span>Septiembre</span>
+<span class="text-primary-fixed font-semibold">Octubre (Actual)</span>
+</div>
+</section>
+<!-- SECTION C: TWO-COLUMN BOTTOM SPLIT (Ledger Table & Services/CRM) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT COLUMN (~65% width: 8 Cols) Recent Transactions Ledger -->
+<div class="lg:col-span-8 rounded-xl border border-primary-fixed/15 bg-surface-container-low/90 backdrop-blur-md p-space-lg">
+<!-- Table Header & Controls -->
+<div class="flex items-center justify-between pb-space-md border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-fixed text-[20px]">receipt_long</span>
+<h3 class="text-headline-sm font-headline-sm font-semibold text-primary">Últimos Movimientos</h3>
+<span class="text-label-caps font-label-caps px-2 py-0.5 rounded-full bg-surface-container text-secondary text-[10px] border border-outline-variant/30">En tiempo real</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container border border-outline-variant/30 text-secondary hover:text-primary text-body-sm font-body-sm text-[12px] transition-colors">
+<span>Filtro: Todos</span>
+<span class="material-symbols-outlined text-[15px]">expand_more</span>
+</button>
+<a class="text-label-caps font-label-caps text-[11px] text-primary-fixed hover:underline flex items-center gap-0.5" href="#movimientos">
+<span>Ver todos</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Dense Financial Ledger Table -->
+<div class="overflow-x-auto custom-scrollbar mt-2">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 text-label-caps font-label-caps text-[10px] text-secondary uppercase tracking-wider">
+<th class="py-2.5 px-3">Transacción</th>
+<th class="py-2.5 px-3">Categoría</th>
+<th class="py-2.5 px-3">Fecha</th>
+<th class="py-2.5 px-3">Estado</th>
+<th class="py-2.5 px-3 text-right">Monto</th>
+<th class="py-2.5 px-2 text-center"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/15 text-body-sm font-body-sm">
+<!-- Row 1: NovaCorp -->
+<tr class="hover:bg-primary-fixed/[0.03] transition-colors group">
+<td class="py-3 px-3">
+<div class="font-medium text-primary text-[13px]">Pago Licencia Enterprise #892</div>
+<div class="text-[11px] text-secondary flex items-center gap-1">
+<span>Cliente:</span>
+<span class="text-primary-fixed font-medium">NovaCorp</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-label-caps font-label-caps text-[10px] text-secondary">Web Dev</span>
+</td>
+<td class="py-3 px-3 font-data-metric-sm text-[12px] text-secondary">
+                    24 Oct, 14:32
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/15 text-primary-fixed border border-primary-fixed/30 text-[10px] font-label-caps font-label-caps">
+<span class="w-1 h-1 rounded-full bg-primary-fixed"></span>
+                      Completado
+                    </span>
+</td>
+<td class="py-3 px-3 text-right font-data-metric-md font-data-metric-md text-primary font-semibold text-[14px]">
+                    +$1,200.00
+                  </td>
+<td class="py-3 px-2 text-center text-secondary hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</td>
+</tr>
+<!-- Row 2: Quantum Labs -->
+<tr class="hover:bg-primary-fixed/[0.03] transition-colors group">
+<td class="py-3 px-3">
+<div class="font-medium text-primary text-[13px]">Suscripción Cloud Dedicada</div>
+<div class="text-[11px] text-secondary flex items-center gap-1">
+<span>Cliente:</span>
+<span class="text-on-surface">Quantum Labs</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-label-caps font-label-caps text-[10px] text-secondary">Hosting</span>
+</td>
+<td class="py-3 px-3 font-data-metric-sm text-[12px] text-secondary">
+                    23 Oct, 09:15
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/15 text-primary-fixed border border-primary-fixed/30 text-[10px] font-label-caps font-label-caps">
+<span class="w-1 h-1 rounded-full bg-primary-fixed"></span>
+                      Completado
+                    </span>
+</td>
+<td class="py-3 px-3 text-right font-data-metric-md font-data-metric-md text-primary font-semibold text-[14px]">
+                    +$450.00
+                  </td>
+<td class="py-3 px-2 text-center text-secondary hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</td>
+</tr>
+<!-- Row 3: Vento Retail (Pending) -->
+<tr class="hover:bg-primary-fixed/[0.03] transition-colors group">
+<td class="py-3 px-3">
+<div class="font-medium text-primary text-[13px]">Remesa Hardware NFC Premium</div>
+<div class="text-[11px] text-secondary flex items-center gap-1">
+<span>Cliente:</span>
+<span class="text-on-surface">Vento Retail</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-label-caps font-label-caps text-[10px] text-secondary">NFC Cards</span>
+</td>
+<td class="py-3 px-3 font-data-metric-sm text-[12px] text-secondary">
+                    22 Oct, 18:40
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 text-[10px] font-label-caps font-label-caps">
+<span class="w-1 h-1 rounded-full bg-amber-400"></span>
+                      Pendiente
+                    </span>
+</td>
+<td class="py-3 px-3 text-right font-data-metric-md font-data-metric-md text-amber-200 font-semibold text-[14px]">
+                    +$220.00
+                  </td>
+<td class="py-3 px-2 text-center text-secondary hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</td>
+</tr>
+<!-- Row 4: AWS Cloud (Egreso) -->
+<tr class="hover:bg-primary-fixed/[0.03] transition-colors group">
+<td class="py-3 px-3">
+<div class="font-medium text-primary text-[13px]">Mantenimiento Servidores EU-West</div>
+<div class="text-[11px] text-secondary flex items-center gap-1">
+<span>Proveedor:</span>
+<span class="text-secondary">AWS Cloud</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-label-caps font-label-caps text-[10px] text-secondary">Infraestructura</span>
+</td>
+<td class="py-3 px-3 font-data-metric-sm text-[12px] text-secondary">
+                    21 Oct, 11:05
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[10px] font-label-caps font-label-caps">
+<span class="w-1 h-1 rounded-full bg-rose-400"></span>
+                      Egreso
+                    </span>
+</td>
+<td class="py-3 px-3 text-right font-data-metric-md font-data-metric-md text-rose-300 font-semibold text-[14px]">
+                    -$180.00
+                  </td>
+<td class="py-3 px-2 text-center text-secondary hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</td>
+</tr>
+<!-- Row 5: Kroma Studio -->
+<tr class="hover:bg-primary-fixed/[0.03] transition-colors group">
+<td class="py-3 px-3">
+<div class="font-medium text-primary text-[13px]">Desarrollo Portal Clientes</div>
+<div class="text-[11px] text-secondary flex items-center gap-1">
+<span>Cliente:</span>
+<span class="text-on-surface">Kroma Studio</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-label-caps font-label-caps text-[10px] text-secondary">Web Dev</span>
+</td>
+<td class="py-3 px-3 font-data-metric-sm text-[12px] text-secondary">
+                    20 Oct, 16:20
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/15 text-primary-fixed border border-primary-fixed/30 text-[10px] font-label-caps font-label-caps">
+<span class="w-1 h-1 rounded-full bg-primary-fixed"></span>
+                      Completado
+                    </span>
+</td>
+<td class="py-3 px-3 text-right font-data-metric-md font-data-metric-md text-primary font-semibold text-[14px]">
+                    +$1,580.00
+                  </td>
+<td class="py-3 px-2 text-center text-secondary hover:text-primary cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- RIGHT COLUMN (~35% width: 4 Cols) Service Breakdown & CRM Spotlight -->
+<div class="lg:col-span-4 space-y-space-lg">
+<!-- Card: Distribución de Ingresos por Servicio -->
+<div class="rounded-xl border border-primary-fixed/15 bg-surface-container-low/90 backdrop-blur-md p-space-lg">
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/20">
+<h3 class="text-headline-sm font-headline-sm font-semibold text-primary">Ingresos por Servicio</h3>
+<span class="text-label-caps font-label-caps text-secondary text-[10px]">MTD %</span>
+</div>
+<!-- Progress Rows -->
+<div class="mt-4 space-y-4">
+<!-- Item 1: Web Dev -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-body-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-fixed"></span>
+<span class="text-on-surface font-medium text-[13px]">Web Dev &amp; Custom Apps</span>
+</div>
+<div class="flex items-center gap-1.5 font-data-metric-sm text-[12px]">
+<span class="text-primary-fixed font-semibold">62%</span>
+<span class="text-secondary">($2,139)</span>
+</div>
+</div>
+<div class="h-1.5 w-full rounded-full bg-surface-container overflow-hidden">
+<div class="h-full rounded-full bg-primary-fixed glow-lime-subtle" style="width: 62%;"></div>
+</div>
+</div>
+<!-- Item 2: Hosting & Cloud -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-body-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed"></span>
+<span class="text-on-surface font-medium text-[13px]">Hosting &amp; Cloud Managed</span>
+</div>
+<div class="flex items-center gap-1.5 font-data-metric-sm text-[12px]">
+<span class="text-tertiary-fixed font-semibold">24%</span>
+<span class="text-secondary">($828)</span>
+</div>
+</div>
+<div class="h-1.5 w-full rounded-full bg-surface-container overflow-hidden">
+<div class="h-full rounded-full bg-tertiary-fixed" style="width: 24%;"></div>
+</div>
+</div>
+<!-- Item 3: NFC Smart Cards -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-body-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-on-surface font-medium text-[13px]">NFC Smart Cards &amp; HW</span>
+</div>
+<div class="flex items-center gap-1.5 font-data-metric-sm text-[12px]">
+<span class="text-secondary font-semibold">14%</span>
+<span class="text-secondary">($483)</span>
+</div>
+</div>
+<div class="h-1.5 w-full rounded-full bg-surface-container overflow-hidden">
+<div class="h-full rounded-full bg-secondary" style="width: 14%;"></div>
+</div>
+</div>
+</div>
+<!-- Footer summary note -->
+<div class="mt-4 pt-3 border-t border-outline-variant/15 flex items-center justify-between text-label-caps font-label-caps text-[10px] text-secondary">
+<span>Volumen acumulado:</span>
+<span class="text-primary-fixed font-data-metric-sm">$3,450.00 USD</span>
+</div>
+</div>
+<!-- Quick Client CRM Spotlight Widget -->
+<div class="rounded-xl border border-primary-fixed/20 bg-surface-container/70 backdrop-blur-md p-space-lg relative overflow-hidden glow-lime-card">
+<!-- Decorative accent glow -->
+<div class="absolute -top-10 -right-10 w-24 h-24 bg-primary-fixed/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/20">
+<span class="text-label-caps font-label-caps text-secondary text-[10px] tracking-wider uppercase">CRM Top Client Spotlight</span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary-fixed/10 text-primary-fixed text-[9px] font-label-caps font-label-caps border border-primary-fixed/20">Tier 1 VIP</span>
+</div>
+<!-- Client Identity Details -->
+<div class="mt-3.5 flex items-center gap-3">
+<div class="w-11 h-11 rounded-lg bg-surface-container-high border border-primary-fixed/30 flex items-center justify-center font-headline-sm font-bold text-primary-fixed text-base glow-lime-subtle">
+                NC
+              </div>
+<div>
+<div class="flex items-center gap-1.5">
+<h4 class="text-headline-sm font-headline-sm font-semibold text-primary text-[15px]">NovaCorp Global</h4>
+<span class="material-symbols-outlined text-primary-fixed text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary text-[11px]">Enterprise SaaS &amp; Cloud Fleet</p>
+</div>
+</div>
+<!-- LTV & Contract Metrics -->
+<div class="grid grid-cols-2 gap-2 mt-4 p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/20">
+<div>
+<span class="text-label-caps font-label-caps text-secondary text-[9px]">LTV ACUMULADO</span>
+<div class="text-data-metric-md font-data-metric-md text-primary-fixed font-bold text-[16px] mt-0.5">$14,200</div>
+</div>
+<div>
+<span class="text-label-caps font-label-caps text-secondary text-[9px]">ÚLTIMO COBRO</span>
+<div class="text-body-sm font-body-sm text-on-surface font-medium text-[12px] mt-0.5">Hace 2 horas</div>
+</div>
+</div>
+<!-- Quick CRM Action Buttons -->
+<div class="grid grid-cols-2 gap-2 mt-3.5">
+<button class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface hover:text-primary hover:border-primary-fixed/30 text-body-sm font-body-sm text-[12px] transition-all">
+<span class="material-symbols-outlined text-[15px] text-emerald-400">chat</span>
+<span>WhatsApp</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface hover:text-primary hover:border-primary-fixed/30 text-body-sm font-body-sm text-[12px] transition-all">
+<span class="material-symbols-outlined text-[15px] text-primary-fixed">mail</span>
+<span>Email Corp</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
