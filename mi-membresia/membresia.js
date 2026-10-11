@@ -1,6 +1,5 @@
 import {
   api,
-  applyTenantTheme,
   detectTenantSlug,
   formatDate,
   qs,
@@ -155,7 +154,6 @@ async function init() {
   try {
     const data = await api(`/api/club/${encodeURIComponent(state.slug)}`);
     state.club = data.club;
-    applyTenantTheme(state.club);
     dom.brandMark.textContent = state.club.nombre.trim().charAt(0).toUpperCase();
   } catch {
     /* el portal funciona igual con la paleta por defecto */
