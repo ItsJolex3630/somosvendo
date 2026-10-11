@@ -17,7 +17,7 @@ import {
   waLink,
 } from '../assets/js/app.js';
 
-const GOOGLE_CLIENT_ID = '589629831378-quob4rn9tsrakbic150m4soedkek4tvk.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com';
 
 const state = { token: null, email: null, pagos: [], miembros: [], metricas: null, memberView: '', memberQuery: '', membersLoaded: false };
 
