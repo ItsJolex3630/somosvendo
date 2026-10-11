@@ -1,10 +1,3 @@
-# VÉNDO Conecta · rewrites (Cloudflare Pages)
-# Los assets estáticos tienen prioridad, así que :slug solo captura slugs reales
-# (p. ej. /club/masafacil). /club/ sirve la landing y /admin/ el panel.
-
-# URL limpia del checkout multi-tenant
-/club/:slug  /club/checkout/?t=:slug  200
-
-# Explícitos (no-op, por claridad)
-/club/    /club/index.html   200
-/admin/*  /admin/:splat      200
+# VÉNDO · Cloudflare Pages Rewrites
+# El panel de administración vive en /admin/
+/admin/*  /admin/:splat  200
