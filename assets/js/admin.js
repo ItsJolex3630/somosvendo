@@ -6,12 +6,20 @@
   var API = '/api/admin/crm';
 
   var NAV = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'movimientos', label: 'Movimientos', icon: '💸' },
-    { id: 'clientes', label: 'Clientes', icon: '👥' },
-    { id: 'cobros', label: 'Cobros', icon: '🔔' },
-    { id: 'ajustes', label: 'Ajustes', icon: '⚙️' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'movimientos', label: 'Movimientos' },
+    { id: 'clientes', label: 'Clientes' },
+    { id: 'cobros', label: 'Cobros' },
+    { id: 'ajustes', label: 'Ajustes' },
   ];
+  /* Iconos SVG minimalistas (barra lateral de escritorio). */
+  var ICONS = {
+    dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    movimientos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>',
+    clientes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    cobros: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2.5"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+    ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>',
+  };
   var RANGE_LABEL = { this_month: 'Este mes', last_6: '6 meses', last_12: '12 meses' };
   var CATEGORY_LABELS = {
     web_sale: 'Venta web', hosting_monthly: 'Hosting mensual', vendo_conecta_monthly: 'Vendo Conecta mensual',
@@ -105,6 +113,8 @@
     $('#login-view').classList.add('hidden');
     $('#app-view').classList.remove('hidden');
     $('#user-email').textContent = state.email || '';
+    var initial = (state.email || 'A').charAt(0).toUpperCase();
+    $$('.user-chip__avatar').forEach(function (av) { av.textContent = initial; });
   }
   function loginError(msg) {
     var el = $('#login-error');
@@ -176,9 +186,13 @@
   }
   function renderNav() {
     $('#nav').innerHTML = NAV.map(function (n) {
-      return '<button class="nav-item' + (n.id === view ? ' active' : '') + '" data-nav="' + n.id + '"><span aria-hidden="true">' + n.icon + '</span>' + n.label + '</button>';
+      return '<button class="nav-item' + (n.id === view ? ' active' : '') + '" data-nav="' + n.id + '" type="button">' +
+        '<span class="nav-item__icon" aria-hidden="true">' + (ICONS[n.id] || '') + '</span>' +
+        '<span class="nav-item__label">' + n.label + '</span></button>';
     }).join('');
-    $$('[data-nav]').forEach(function (b) { b.addEventListener('click', function () { navigate(b.dataset.nav); }); });
+    $$('[data-nav]', $('#nav')).forEach(function (b) { b.addEventListener('click', function () { navigate(b.dataset.nav); }); });
+    // Sincroniza el dock inferior móvil con la vista activa (según location.hash).
+    $$('[data-nav]', $('#bottom-nav')).forEach(function (b) { b.classList.toggle('active', b.dataset.nav === view); });
   }
   function render(v) {
     view = NAV.some(function (n) { return n.id === v; }) ? v : 'dashboard';
@@ -198,8 +212,14 @@
       var d = await api('/notifications');
       state.alerts = d.alerts || [];
       var c = $('#bell-count');
-      if (state.alerts.length) { c.textContent = state.alerts.length; c.classList.remove('hidden'); }
-      else c.classList.add('hidden');
+      var dock = $('#dock-badge');
+      if (state.alerts.length) {
+        c.textContent = state.alerts.length; c.classList.remove('hidden');
+        if (dock) { dock.textContent = state.alerts.length; dock.classList.remove('hidden'); }
+      } else {
+        c.classList.add('hidden');
+        if (dock) dock.classList.add('hidden');
+      }
     } catch (e) { /* silencioso */ }
   }
   function toggleBell() {
@@ -670,9 +690,20 @@
     $('#menu-btn').addEventListener('click', function () { $('#app-view').classList.toggle('nav-open'); });
     $('#bell-btn').addEventListener('click', function (e) { e.stopPropagation(); toggleBell(); });
     $('#logout-btn').addEventListener('click', signOut);
+    // Navegación del dock inferior móvil (se enlaza una sola vez; el estado activo lo refresca renderNav).
+    $$('[data-nav]', $('#bottom-nav')).forEach(function (b) {
+      b.addEventListener('click', function () { navigate(b.dataset.nav); });
+    });
     document.addEventListener('click', function (e) {
       var p = $('#bell-panel');
       if (p && !p.classList.contains('hidden') && !e.target.closest('.bell-wrap')) p.classList.add('hidden');
+    });
+    document.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        var s = $('#global-search');
+        if (s) { s.focus(); s.select(); }
+      }
     });
     window.addEventListener('hashchange', function () { render(currentView()); });
   }

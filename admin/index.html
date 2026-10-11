@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#01110a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
 <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
 <link rel="stylesheet" href="../assets/css/app.css">
 <link rel="stylesheet" href="../assets/css/admin.css">
@@ -28,24 +28,104 @@
 
 <div id="app-view" class="app hidden">
   <aside class="sidebar" id="sidebar">
-    <div class="brand"><span class="brand__mark">V</span><span class="brand__name">Vendo</span></div>
-    <nav id="nav"></nav>
-    <button class="btn btn--ghost btn--sm sidebar-logout" id="logout-btn" type="button">Salir</button>
+    <div class="brand">
+      <span class="brand__mark">V<span class="brand__pulse"></span></span>
+      <span class="brand__meta">
+        <span class="brand__name">VENDO</span>
+        <span class="brand__eyebrow">Treasury &amp; CRM</span>
+      </span>
+    </div>
+    <nav id="nav" aria-label="Navegación principal"></nav>
+    <div class="sidebar-foot">
+      <div class="user-chip">
+        <span class="user-chip__avatar" aria-hidden="true">A</span>
+        <span class="user-chip__info">
+          <span class="user-chip__dot"></span>
+          <span id="user-email" class="user-chip__email">—</span>
+        </span>
+      </div>
+      <button class="btn btn--ghost btn--sm sidebar-logout" id="logout-btn" type="button">Cerrar sesión</button>
+    </div>
   </aside>
+
   <div class="app-main">
     <header class="topbar">
       <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Menú">☰</button>
+
+      <div class="topbar__brand">
+        <span class="brand__mark">V</span>
+        <span class="topbar__brand-text"><strong>VENDO</strong><small>Admin</small></span>
+      </div>
+
       <h1 id="page-title" class="topbar__title">Dashboard</h1>
+
+      <div class="topbar__search" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="global-search" placeholder="Buscar cliente, movimiento o servicio…" aria-label="Buscar">
+        <span class="kbd">⌘K</span>
+      </div>
+
       <div class="topbar__actions">
+        <span class="vault-pill"><span class="vault-pill__dot"></span> Bóveda sincronizada</span>
         <div class="bell-wrap">
-          <button class="icon-btn" id="bell-btn" type="button" aria-label="Notificaciones">🔔<span id="bell-count" class="bell-count hidden">0</span></button>
+          <button class="icon-btn" id="bell-btn" type="button" aria-label="Notificaciones">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span id="bell-count" class="bell-count hidden">0</span>
+          </button>
           <div id="bell-panel" class="bell-panel hidden"></div>
         </div>
-        <span id="user-email" class="small muted user-email"></span>
+        <div class="user-chip user-chip--topbar" title="Administrador conectado">
+          <span class="user-chip__avatar" aria-hidden="true">A</span>
+          <span class="user-chip__dot" aria-hidden="true"></span>
+        </div>
       </div>
     </header>
+
     <main id="view" class="content" aria-live="polite"></main>
   </div>
+
+  <nav id="bottom-nav" class="bottom-nav" aria-label="Navegación móvil">
+    <button type="button" class="bottom-tab" data-nav="dashboard">
+      <span class="tab-icon-wrap">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span class="active-capsule-glow"></span>
+      </span>
+      <span class="tab-label">Dashboard</span>
+    </button>
+
+    <button type="button" class="bottom-tab" data-nav="movimientos">
+      <span class="tab-icon-wrap">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+        <span id="dock-badge" class="tab-badge hidden">0</span>
+        <span class="active-capsule-glow"></span>
+      </span>
+      <span class="tab-label">Movimientos</span>
+    </button>
+
+    <button type="button" class="bottom-tab" data-nav="clientes">
+      <span class="tab-icon-wrap">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="active-capsule-glow"></span>
+      </span>
+      <span class="tab-label">Clientes</span>
+    </button>
+
+    <button type="button" class="bottom-tab" data-nav="cobros">
+      <span class="tab-icon-wrap">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2.5"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span class="active-capsule-glow"></span>
+      </span>
+      <span class="tab-label">Cobros</span>
+    </button>
+
+    <button type="button" class="bottom-tab" data-nav="ajustes">
+      <span class="tab-icon-wrap">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span class="active-capsule-glow"></span>
+      </span>
+      <span class="tab-label">Ajustes</span>
+    </button>
+  </nav>
 </div>
 
 <div id="modal" class="modal" aria-hidden="true">
