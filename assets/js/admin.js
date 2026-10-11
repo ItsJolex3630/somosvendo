@@ -240,41 +240,189 @@
     var el = $('#view');
     range = range || 'this_month';
     state.summaryRange = range;
-    el.innerHTML = '<div class="skeleton" style="height:120px"></div>';
-    var data;
-    try { data = await api('/summary?range=' + encodeURIComponent(range)); }
-    catch (e) { el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; return; }
+    el.innerHTML = '<div class="skeleton" style="height:140px;border-radius:16px;background:rgba(206,241,123,0.04);margin-bottom:16px"></div>';
+    var data, movData = { movements: [] };
+    try {
+      var results = await Promise.all([
+        api('/summary?range=' + encodeURIComponent(range)),
+        api('/movements?limit=5').catch(function () { return { movements: [] }; })
+      ]);
+      data = results[0];
+      movData = results[1];
+    } catch (e) {
+      el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>';
+      return;
+    }
+
     var s = data.summary;
+    var recent = movData.movements || [];
+
+    // Sparklines SVG con gradientes
+    var spark1 = '<svg class="spark-svg" viewBox="0 0 100 36"><defs><linearGradient id="sp1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cef17b" stop-opacity="0.35"/><stop offset="100%" stop-color="#cef17b" stop-opacity="0"/></linearGradient></defs><path d="M0,28 Q15,24 30,26 T60,14 T85,18 T100,4 L100,36 L0,36 Z" fill="url(#sp1)"/><path d="M0,28 Q15,24 30,26 T60,14 T85,18 T100,4" fill="none" stroke="#cef17b" stroke-width="2" stroke-linecap="round"/><circle cx="100" cy="4" fill="#cef17b" r="3"/></svg>';
+
+    var spark2 = '<svg class="spark-svg" viewBox="0 0 100 36"><defs><linearGradient id="sp2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#68fcbf" stop-opacity="0.35"/><stop offset="100%" stop-color="#68fcbf" stop-opacity="0"/></linearGradient></defs><path d="M0,32 Q25,28 45,20 T80,10 T100,2 L100,36 L0,36 Z" fill="url(#sp2)"/><path d="M0,32 Q25,28 45,20 T80,10 T100,2" fill="none" stroke="#68fcbf" stroke-width="2" stroke-linecap="round"/><circle cx="100" cy="2" fill="#68fcbf" r="3"/></svg>';
+
     el.innerHTML =
       '<div class="section-head">' +
-        '<div class="filters" style="margin:0">' +
-          ['this_month', 'last_6', 'last_12'].map(function (r) {
-            return '<button class="chip' + (r === range ? ' is-active' : '') + '" data-range="' + r + '">' + RANGE_LABEL[r] + '</button>';
-          }).join('') +
+        '<div>' +
+          '<h2 class="dash-headline">Métricas Principales</h2>' +
+          '<p class="dash-sub">Tesorería consolidada en tiempo real de Vendo</p>' +
         '</div>' +
         '<div class="wrap-flex">' +
           '<button class="btn btn--sm" id="qa-income">+ Registrar ingreso</button>' +
-          '<button class="btn btn--sm btn--ghost" id="qa-expense">+ Registrar gasto</button>' +
+          '<button class="btn btn--sm btn--secondary" id="qa-expense">+ Registrar gasto</button>' +
         '</div>' +
       '</div>' +
+
       '<div class="kpi-row">' +
-        '<div class="kpi"><div class="kpi__v" style="color:var(--ok)">' + fmt(s.income_cents) + '</div><div class="kpi__l">Ingresos</div></div>' +
-        '<div class="kpi"><div class="kpi__v" style="color:var(--danger)">' + fmt(s.expense_cents) + '</div><div class="kpi__l">Gastos</div></div>' +
-        '<div class="kpi kpi--hero"><div class="kpi__v">' + fmt(s.net_cents) + '</div><div class="kpi__l">Ganancia neta</div></div>' +
+        '<div class="kpi kpi--hero">' +
+          '<div class="kpi__top">' +
+            '<div>' +
+              '<span class="kpi__l">Balance Neto Operativo</span>' +
+              '<div class="kpi__v">' + fmt(s.net_cents) + ' <span class="kpi__cur">USD</span></div>' +
+            '</div>' +
+            '<div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>' +
+          '</div>' +
+          '<div class="kpi__bottom">' +
+            '<div class="kpi__meta">' +
+              '<span class="trend-pill trend--up">' +
+                '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' +
+                'Margen líquido' +
+              '</span>' +
+              '<span class="kpi__hint">Ganancia neta del período</span>' +
+            '</div>' +
+            '<div class="kpi__spark">' + spark1 + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="kpi">' +
+          '<div class="kpi__top">' +
+            '<div>' +
+              '<span class="kpi__l">Total Cobrado (MTD)</span>' +
+              '<div class="kpi__v" style="color:var(--status-income)">' + fmt(s.income_cents) + ' <span class="kpi__cur">USD</span></div>' +
+            '</div>' +
+            '<div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>' +
+          '</div>' +
+          '<div class="kpi__bottom">' +
+            '<div class="kpi__meta">' +
+              '<span class="trend-pill trend--neutral">' +
+                '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>' +
+                'Flujo entrante' +
+              '</span>' +
+              '<span class="kpi__hint">' + recent.length + ' movimientos recientes</span>' +
+            '</div>' +
+            '<div class="kpi__spark">' + spark2 + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="kpi">' +
+          '<div class="kpi__top">' +
+            '<div>' +
+              '<span class="kpi__l">Gastos Operativos</span>' +
+              '<div class="kpi__v" style="color:var(--status-expense)">' + fmt(s.expense_cents) + ' <span class="kpi__cur">USD</span></div>' +
+            '</div>' +
+            '<div class="kpi__icon-box kpi__icon-box--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>' +
+          '</div>' +
+          '<div class="kpi__bottom">' +
+            '<div class="kpi__meta">' +
+              '<span class="trend-pill trend--down">' +
+                '<span class="dot-pulse-amber"></span>' +
+                'Egresos controlados' +
+              '</span>' +
+              '<span class="kpi__hint">Costos y servicios liquidados</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
-      '<div class="card" style="padding:18px;margin-bottom:16px">' +
-        '<div class="between" style="margin-bottom:8px"><h2 style="font-size:16px;margin:0">Evolución financiera</h2>' +
-        '<div class="legend"><span class="l-income">Ingresos</span><span class="l-expense">Gastos</span><span class="l-net">Neto</span></div></div>' +
+
+      '<div class="card chart-card-rich">' +
+        '<div class="chart-header">' +
+          '<div>' +
+            '<h3 class="chart-title">Flujo de Caja y Proyección</h3>' +
+            '<p class="chart-sub">Comparativa mensual de ingresos, gastos y margen neto</p>' +
+          '</div>' +
+          '<div class="chart-controls">' +
+            '<div class="legend">' +
+              '<span class="l-income">Ingresos</span>' +
+              '<span class="l-expense">Gastos</span>' +
+              '<span class="l-net">Neto</span>' +
+            '</div>' +
+            '<div class="filters" style="margin:0">' +
+              ['this_month', 'last_6', 'last_12'].map(function (r) {
+                return '<button class="chip' + (r === range ? ' is-active' : '') + '" data-range="' + r + '">' + RANGE_LABEL[r] + '</button>';
+              }).join('') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
         chartSvg(data.series) +
       '</div>' +
-      '<div class="grid-2">' +
-        '<div class="card" style="padding:18px"><h2 style="font-size:15px;margin:0 0 10px">Ingresos por categoría</h2>' + catList(data.income_by_category) + '</div>' +
-        '<div class="card" style="padding:18px"><h2 style="font-size:15px;margin:0 0 10px">Gastos por categoría</h2>' + catList(data.expense_by_category) + '</div>' +
+
+      '<div class="dash-split">' +
+        '<div class="dash-split__left">' +
+          '<div class="card-head-split">' +
+            '<div class="card-head-title">' +
+              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+              '<h3>Últimos Movimientos</h3>' +
+              '<span class="badge-live">En vivo</span>' +
+            '</div>' +
+            '<a class="link-more" href="#/movimientos">Ver todos →</a>' +
+          '</div>' +
+          renderRecentTable(recent) +
+        '</div>' +
+
+        '<div class="dash-split__right">' +
+          '<div class="card" style="padding:18px">' +
+            '<div class="card-head-split" style="margin-bottom:12px">' +
+              '<h3>Ingresos por Categoría</h3>' +
+              '<span class="badge-mini">Total MTD</span>' +
+            '</div>' +
+            catList(data.income_by_category) +
+          '</div>' +
+          '<div class="card" style="padding:18px">' +
+            '<div class="card-head-split" style="margin-bottom:12px">' +
+              '<h3>Gastos por Categoría</h3>' +
+              '<span class="badge-mini">Costos</span>' +
+            '</div>' +
+            catList(data.expense_by_category) +
+          '</div>' +
+        '</div>' +
       '</div>';
 
     $$('[data-range]', el).forEach(function (b) { b.addEventListener('click', function () { viewDashboard(b.dataset.range); }); });
     $('#qa-income').addEventListener('click', function () { movementModal({ kind: 'income' }); });
     $('#qa-expense').addEventListener('click', function () { movementModal({ kind: 'expense' }); });
+  }
+
+  function renderRecentTable(items) {
+    if (!items || !items.length) {
+      return '<p class="list-empty small">No hay transacciones registradas aún en el sistema.</p>';
+    }
+    return '<div class="tbl-wrap"><table class="tbl">' +
+      '<thead><tr>' +
+        '<th>Transacción</th>' +
+        '<th>Categoría</th>' +
+        '<th>Fecha</th>' +
+        '<th class="num">Monto</th>' +
+      '</tr></thead>' +
+      '<tbody>' +
+      items.map(function (m) {
+        var isIncome = m.kind === 'income';
+        var sign = isIncome ? '+' : '-';
+        var cls = isIncome ? 'income' : 'expense';
+        var dateStr = (m.movement_date || '').slice(0, 10);
+        return '<tr>' +
+          '<td>' +
+            '<div class="mov-main-cell">' +
+              '<span class="mov-title">' + esc(m.description || (isIncome ? 'Ingreso registrado' : 'Gasto registrado')) + '</span>' +
+              (m.client_name ? '<span class="mov-client">' + esc(m.client_name) + '</span>' : '') +
+            '</div>' +
+          '</td>' +
+          '<td><span class="cat-pill">' + esc(catLabel(m.category)) + '</span></td>' +
+          '<td class="mov-date">' + esc(dateStr) + '</td>' +
+          '<td class="num ' + cls + '">' + sign + fmt(m.amount_cents) + '</td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
   }
 
   function catList(items) {
@@ -290,7 +438,7 @@
 
   function chartSvg(series) {
     if (!series || !series.length) return '<p class="list-empty small">Sin datos en el rango.</p>';
-    var W = 680, H = 250, padL = 40, padR = 12, padT = 14, padB = 34;
+    var W = 680, H = 250, padL = 44, padR = 14, padT = 16, padB = 34;
     var innerW = W - padL - padR, innerH = H - padT - padB;
     var maxVal = Math.max(1, Math.max.apply(null, series.map(function (s) { return Math.max(s.income_cents, s.expense_cents); })));
     var nets = series.map(function (s) { return s.net_cents; });
@@ -300,31 +448,37 @@
     var n = series.length;
     var slot = innerW / n;
     var bars = '', line = '', labels = '', grid = '';
+    var defs = '<defs>' +
+      '<linearGradient id="chartIncomeGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cef17b" stop-opacity="0.95"/><stop offset="100%" stop-color="#8cb635" stop-opacity="0.75"/></linearGradient>' +
+      '<linearGradient id="chartExpenseGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f87171" stop-opacity="0.95"/><stop offset="100%" stop-color="#b91c1c" stop-opacity="0.75"/></linearGradient>' +
+      '<filter id="glowLime" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+      '</defs>';
+
     for (var g = 0; g <= 4; g += 1) {
       var y = padT + (innerH * g) / 4;
       var val = maxVal * (1 - g / 4);
-      grid += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="var(--t-line)" stroke-width="1"/>';
-      grid += '<text x="' + (padL - 6) + '" y="' + (y + 3) + '" text-anchor="end" font-size="9" fill="var(--t-muted)">' + (val / 100).toFixed(0) + '</text>';
+      grid += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(206, 241, 123, 0.08)" stroke-dasharray="3 3" stroke-width="1"/>';
+      grid += '<text x="' + (padL - 8) + '" y="' + (y + 3) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="rgba(248, 255, 230, 0.45)">$' + (val / 100).toFixed(0) + '</text>';
     }
     series.forEach(function (s, i) {
       var x0 = padL + i * slot;
-      var bw = Math.min(20, slot * 0.3);
-      var ih = (s.income_cents / maxVal) * innerH;
-      var eh = (s.expense_cents / maxVal) * innerH;
-      bars += '<rect x="' + (x0 + slot / 2 - bw - 2) + '" y="' + (padT + innerH - ih) + '" width="' + bw + '" height="' + ih + '" rx="3" fill="var(--ok)"/>';
-      bars += '<rect x="' + (x0 + slot / 2 + 2) + '" y="' + (padT + innerH - eh) + '" width="' + bw + '" height="' + eh + '" rx="3" fill="var(--danger)"/>';
+      var bw = Math.min(22, Math.max(6, slot * 0.32));
+      var ih = Math.max(3, (s.income_cents / maxVal) * innerH);
+      var eh = Math.max(3, (s.expense_cents / maxVal) * innerH);
+      bars += '<rect x="' + (x0 + slot / 2 - bw - 2) + '" y="' + (padT + innerH - ih) + '" width="' + bw + '" height="' + ih + '" rx="4" fill="url(#chartIncomeGrad)"/>';
+      bars += '<rect x="' + (x0 + slot / 2 + 2) + '" y="' + (padT + innerH - eh) + '" width="' + bw + '" height="' + eh + '" rx="4" fill="url(#chartExpenseGrad)"/>';
       var cx = x0 + slot / 2;
       var cy = padT + ((netMax - s.net_cents) / netRange) * innerH;
       line += (i === 0 ? 'M' : 'L') + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ';
-      labels += '<text x="' + cx + '" y="' + (H - 12) + '" text-anchor="middle" font-size="10" fill="var(--t-muted)">' + esc(s.month.slice(5) + '/' + s.month.slice(2, 4)) + '</text>';
+      labels += '<text x="' + cx + '" y="' + (H - 12) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="rgba(248, 255, 230, 0.55)">' + esc(s.month.slice(5) + '/' + s.month.slice(2, 4)) + '</text>';
     });
     var dots = series.map(function (s, i) {
       var cx = padL + i * slot + slot / 2;
       var cy = padT + ((netMax - s.net_cents) / netRange) * innerH;
-      return '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="3" fill="var(--t-primary)"/>';
+      return '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="3.5" fill="#cef17b" stroke="#01180f" stroke-width="1.5" filter="url(#glowLime)"/>';
     }).join('');
     return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Evolución financiera">' +
-      grid + bars + '<path d="' + line + '" fill="none" stroke="var(--t-primary)" stroke-width="2"/>' + dots + labels + '</svg>';
+      defs + grid + bars + '<path d="' + line + '" fill="none" stroke="#cef17b" stroke-width="2.5" stroke-linecap="round"/>' + dots + labels + '</svg>';
   }
 
   /* ------------------------------ movimientos ------------------------------ */
@@ -698,11 +852,23 @@
       var p = $('#bell-panel');
       if (p && !p.classList.contains('hidden') && !e.target.closest('.bell-wrap')) p.classList.add('hidden');
     });
+    var gs = $('#global-search');
+    if (gs) {
+      gs.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var val = gs.value.trim();
+          if (val) {
+            state.movFilters = state.movFilters || { kind: '', category: '', from: '', to: '', q: '' };
+            state.movFilters.q = val;
+            navigate('movimientos');
+          }
+        }
+      });
+    }
     document.addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        var s = $('#global-search');
-        if (s) { s.focus(); s.select(); }
+        if (gs) { gs.focus(); gs.select(); }
       }
     });
     window.addEventListener('hashchange', function () { render(currentView()); });
