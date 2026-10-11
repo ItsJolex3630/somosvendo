@@ -9,6 +9,7 @@ import { daysOverdue, daysUntilDue, todayIso } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 export async function POST(request: Request) {
   const secret = process.env.CRON_SECRET;

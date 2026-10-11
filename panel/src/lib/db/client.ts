@@ -1,19 +1,20 @@
-import { createClient, type Client } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client/web";
 import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-const url = process.env.DATABASE_URL;
+const rawUrl = process.env.DATABASE_URL;
 
-if (!url) {
+if (!rawUrl) {
   throw new Error(
-    "DATABASE_URL no está definida. Copia .env.example a .env.local y configura Turso.",
+    "DATABASE_URL no está definida. Configúrala en el entorno (Pages → Settings → Variables).",
   );
 }
 
+// En Cloudflare Workers/Pages usamos el transporte HTTP de libSQL (https://).
+const url = rawUrl.replace(/^libsql:\/\//, "https://");
+
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
-// Una sola conexión por proceso (globalThis sobrevive a la recarga de módulos
-// de Next en desarrollo).
 const globalForDb = globalThis as unknown as {
   __vendoLibsql?: Client;
   __vendoDb?: Db;

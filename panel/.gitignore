@@ -14,6 +14,9 @@ dist/
 # env
 .env
 .env*.local
+.dev.vars
+.vercel/
+.wrangler/
 
 # misc
 .DS_Store
