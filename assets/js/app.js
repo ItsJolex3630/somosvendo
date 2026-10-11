@@ -217,7 +217,7 @@ export function detectTenantSlug(fallback = '') {
   const match = window.location.pathname.match(/\/club\/([^/]+)\/?$/i);
   if (match) {
     const segment = decodeURIComponent(match[1]).toLowerCase();
-    if (segment !== 'index.html' && segment !== 'checkout.html') fromPath = segment;
+    if (segment !== 'index.html' && segment !== 'checkout.html' && segment !== 'checkout') fromPath = segment;
   }
   const raw = (fromQuery || fromPath || fromHash || '').trim().toLowerCase();
   const clean = raw.replace(/[^a-z0-9-]/g, '');
