@@ -507,42 +507,90 @@ body { font-family: var(--font-body); }
 .progress-fill { height: 100%; border-radius: 99px; background: var(--primary-lime); box-shadow: 0 0 10px var(--primary-lime); }
 .goal-foot { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); }
 
-/* Clientes: Grid de tarjetas ejecutivo */
-.client-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; margin-top: 8px; }
+/* Clientes: Grid de tarjetas ejecutivo idéntico a Lovable */
+.client-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; margin-top: 14px; }
 .client-card {
-  background: rgba(2, 34, 22, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;
-  display: flex; flex-direction: column; justify-content: space-between; min-height: 210px;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  background: rgba(2, 34, 22, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-subtle); border-radius: 16px; padding: 22px;
+  display: flex; flex-direction: column; justify-content: space-between; min-height: 220px;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-.client-card:hover { border-color: var(--border-active); transform: translateY(-2px); }
+.client-card:hover {
+  border-color: var(--border-active); transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(206, 241, 123, 0.08);
+}
 .client-card__top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+
+/* Avatares con tonos de color Lovable */
 .client-avatar {
-  width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
-  font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--primary-lime);
+  width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--primary-lime);
   background: rgba(206, 241, 123, 0.12); border: 1px solid var(--border-active); flex-shrink: 0;
 }
-.client-card h3 { font-family: var(--font-display); font-size: 17.5px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px; }
-.client-card p { font-size: 12.5px; color: var(--text-muted); margin: 0 0 12px; }
-.client-card__svc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.client-avatar.tone-lime { color: #cef17b; background: rgba(206, 241, 123, 0.14); border-color: rgba(206, 241, 123, 0.3); }
+.client-avatar.tone-teal { color: #68fcbf; background: rgba(104, 252, 191, 0.14); border-color: rgba(104, 252, 191, 0.3); }
+.client-avatar.tone-sand { color: #fde047; background: rgba(253, 224, 71, 0.14); border-color: rgba(253, 224, 71, 0.3); }
+.client-avatar.tone-blue { color: #60a5fa; background: rgba(96, 165, 250, 0.14); border-color: rgba(96, 165, 250, 0.3); }
+.client-avatar.tone-rose { color: #f87171; background: rgba(248, 113, 113, 0.14); border-color: rgba(248, 113, 113, 0.3); }
+
+.client-card h3 { font-family: var(--font-display); font-size: 17px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px; }
+.client-card .client-meta-line { font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; line-height: 1.4; word-break: break-all; }
+.client-card__svc { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 16px; }
+
+.service-tag {
+  font-family: var(--font-mono); font-size: 9.5px; color: var(--text-secondary);
+  border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px;
+  background: var(--bg-surface-2); white-space: nowrap; letter-spacing: 0.02em;
+}
+
 .client-card__foot {
   display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle);
   padding-top: 13px; margin-top: auto; font-family: var(--font-mono); font-size: 11px;
 }
-
-/* Cobros: Lista rica de tarjetas y acciones */
-.cobros-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
-.cobro-card {
-  padding: 16px 20px; border-radius: 14px; border: 1px solid var(--border-subtle);
-  background: rgba(2, 34, 22, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;
-  transition: border-color 0.15s ease;
+.client-card__foot .card-foot-label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+.client-card__foot .card-foot-action {
+  color: var(--primary-lime); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;
+  background: none; border: 0; cursor: pointer; padding: 0; font-family: inherit; font-size: 11px; font-weight: 600;
 }
-.cobro-card:hover { border-color: var(--border-active); }
-.cobro-card__main { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.cobro-card__info { display: flex; flex-direction: column; gap: 3px; }
-.cobro-card__title { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; color: var(--text-primary); }
-.cobro-card__meta { font-size: 12px; color: var(--text-muted); }
-.cobro-card__right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
-.cobro-card__amt { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
-.cobro-card__actions { display: flex; align-items: center; gap: 8px; }
+.client-card__foot .card-foot-action:hover { text-decoration: underline; }
+
+/* Status Badge estilo Lovable */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 600; padding: 4px 8px; border-radius: 6px; white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.status-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.status-badge.status--completado, .status-badge.status--al_dia { color: var(--primary-lime); background: rgba(206, 241, 123, 0.12); border: 1px solid rgba(206, 241, 123, 0.25); }
+.status-badge.status--pendiente, .status-badge.status--proximo { color: #fde047; background: rgba(253, 224, 71, 0.12); border: 1px solid rgba(253, 224, 71, 0.25); }
+.status-badge.status--vencido { color: #f87171; background: rgba(248, 113, 113, 0.12); border: 1px solid rgba(248, 113, 113, 0.25); }
+
+/* Panel contenedor estilo Lovable */
+.panel-lovable {
+  background: rgba(2, 34, 22, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-subtle); border-radius: 16px; overflow: hidden;
+}
+.panel-lovable__head {
+  padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap;
+}
+.panel-lovable__head h2 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 0 0 3px; color: var(--text-primary); }
+.panel-lovable__head p { font-size: 11px; color: var(--text-muted); margin: 0; }
+
+/* Cobros: Lista rica y limpia de tarjetas estilo Lovable */
+.cobros-list { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.cobro-item-panel {
+  padding: 18px 22px; border-radius: 14px; border: 1px solid var(--border-subtle);
+  background: rgba(2, 34, 22, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.cobro-item-panel:hover { border-color: var(--border-active); }
+.cobro-item__cell { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.cobro-item__info h3 { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; color: var(--text-primary); margin: 0 0 2px; }
+.cobro-item__info .cobro-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.cobro-item__info .cobro-desc { font-size: 11px; color: var(--text-secondary); margin: 4px 0 0; }
+.cobro-item__right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.cobro-item__amt { font-family: var(--font-mono); font-size: 17px; font-weight: 700; color: var(--primary-lime); }
+.cobro-item__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+

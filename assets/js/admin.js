@@ -65,6 +65,13 @@
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return name.slice(0, 2).toUpperCase();
   }
+  function avatarTone(name) {
+    if (!name) return 'tone-lime';
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    var tones = ['tone-lime', 'tone-teal', 'tone-sand', 'tone-blue', 'tone-rose'];
+    return tones[Math.abs(hash) % tones.length];
+  }
 
   var toastHost;
   function toast(msg, type) {
@@ -535,6 +542,10 @@
           '<p>Cada ingreso y egreso registrado. Sin perder ningún detalle.</p>' +
         '</div>' +
         '<div class="heading-actions">' +
+          '<button class="btn btn--secondary btn--sm" id="export-mov" type="button" title="Exportar CSV">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+            'Exportar' +
+          '</button>' +
           '<button class="btn btn--sm" id="new-mov">+ Nuevo movimiento</button>' +
         '</div>' +
       '</div>' +
@@ -544,13 +555,16 @@
           '<button type="button" class="btn-seg' + (f.kind === 'income' ? ' active' : '') + '" data-kind="income">Ingresos</button>' +
           '<button type="button" class="btn-seg' + (f.kind === 'expense' ? ' active' : '') + '" data-kind="expense">Gastos</button>' +
         '</div>' +
-        '<div class="filters" style="margin:0">' +
-          '<select class="select" id="f-cat"><option value="">Categoría: todas</option>' + ALL_CATEGORIES.map(function (c) { return '<option value="' + c + '">' + esc(catLabel(c)) + '</option>'; }).join('') + '</select>' +
+        '<div class="filters" style="margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          '<div style="position:relative;display:flex;align-items:center">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:10px;color:var(--text-muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+            '<input class="input" id="f-q" placeholder="Buscar concepto o cliente…" style="padding-left:32px;min-width:210px">' +
+          '</div>' +
+          '<select class="select" id="f-cat"><option value="">Todos los servicios</option>' + ALL_CATEGORIES.map(function (c) { return '<option value="' + c + '">' + esc(catLabel(c)) + '</option>'; }).join('') + '</select>' +
           '<input class="input" type="date" id="f-from" title="Desde"><input class="input" type="date" id="f-to" title="Hasta">' +
-          '<input class="input" id="f-q" placeholder="Buscar concepto o cliente…" style="min-width:180px">' +
         '</div>' +
       '</div>' +
-      '<div class="card tbl-wrap" id="mov-table" style="background:rgba(2,34,22,0.7);backdrop-filter:blur(12px);border-radius:16px;border:1px solid var(--border-subtle)"></div>';
+      '<div class="panel-lovable" id="mov-panel"><div class="skeleton" style="height:140px;background:rgba(206,241,123,0.04)"></div></div>';
 
     $$('#mov-segmented .btn-seg').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -574,44 +588,97 @@
     $('#f-to').addEventListener('change', triggerFilter);
     $('#f-q').addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(triggerFilter, 250); });
     $('#new-mov').addEventListener('click', function () { movementModal({ kind: 'income' }); });
+    $('#export-mov').addEventListener('click', exportMovementsCsv);
     loadMovementsTable();
   }
 
   async function loadMovementsTable() {
-    var el = $('#mov-table');
-    el.innerHTML = '<div class="skeleton" style="height:140px;border-radius:16px;background:rgba(206,241,123,0.04)"></div>';
+    var p = $('#mov-panel');
+    p.innerHTML = '<div class="skeleton" style="height:140px;background:rgba(206,241,123,0.04)"></div>';
     var f = state.movFilters || {};
     var qs = new URLSearchParams();
     Object.keys(f).forEach(function (k) { if (f[k]) qs.set(k, f[k]); });
     try {
       var d = await api('/movements' + (qs.toString() ? '?' + qs.toString() : ''));
       var rows = d.movements || [];
-      if (!rows.length) { el.innerHTML = '<div class="list-empty">No hay movimientos con estos filtros.</div>'; return; }
-      el.innerHTML = '<table class="tbl"><thead><tr><th>Cliente / Concepto</th><th>Categoría</th><th>Fecha</th><th>Tipo</th><th class="num">Monto</th><th class="actions"></th></tr></thead><tbody>' +
+      state.currentMovementsRows = rows;
+      if (!rows.length) {
+        p.innerHTML = '<div class="panel-lovable__head"><div><h2>Todos los movimientos</h2><p>0 movimientos registrados</p></div></div><div class="list-empty" style="padding:48px 20px">No hay movimientos con estos filtros.</div>';
+        return;
+      }
+      p.innerHTML =
+        '<div class="panel-lovable__head">' +
+          '<div>' +
+            '<h2>Todos los movimientos</h2>' +
+            '<p>' + rows.length + ' movimientos registrados · Octubre 2026</p>' +
+          '</div>' +
+          '<span class="badge-mini" style="font-family:var(--font-mono)">' + rows.length + ' REGISTROS</span>' +
+        '</div>' +
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+          '<th>CLIENTE / CONCEPTO</th>' +
+          '<th>SERVICIO</th>' +
+          '<th>FECHA</th>' +
+          '<th>ESTADO</th>' +
+          '<th class="num">IMPORTE</th>' +
+          '<th class="actions"></th>' +
+        '</tr></thead><tbody>' +
         rows.map(function (m) {
           var isIncome = m.kind === 'income';
           var sign = isIncome ? '+' : '−';
           var cls = isIncome ? 'income' : 'expense';
           var initials = clientInitials(m.client_name || m.description);
+          var tone = avatarTone(m.client_name || m.description);
+          var statusPill = isIncome ?
+            '<span class="status-badge status--completado">Completado</span>' :
+            '<span class="status-badge status--pendiente">Liquidado</span>';
           return '<tr>' +
             '<td>' +
-              '<div class="mov-main-cell" style="display:flex;align-items:center;gap:10px">' +
-                '<span class="client-avatar" style="width:32px;height:32px;font-size:11px;border-radius:8px">' + esc(initials) + '</span>' +
+              '<div class="mov-main-cell" style="display:flex;align-items:center;gap:11px">' +
+                '<span class="client-avatar ' + tone + '">' + esc(initials) + '</span>' +
                 '<div>' +
-                  '<strong style="color:var(--text-primary);font-size:13.5px">' + esc(m.description || (isIncome ? 'Ingreso registrado' : 'Gasto registrado')) + '</strong>' +
-                  (m.client_name ? '<div class="small muted">' + esc(m.client_name) + '</div>' : '') +
+                  '<strong style="color:var(--text-primary);font-size:13.5px;display:block">' + esc(m.client_name || m.description || (isIncome ? 'Ingreso registrado' : 'Gasto registrado')) + '</strong>' +
+                  '<span style="font-size:11px;color:var(--text-muted);display:block;margin-top:2px">' + esc(m.description || (isIncome ? 'Cobro liquidado' : 'Egreso operativo')) + '</span>' +
                 '</div>' +
               '</div>' +
             '</td>' +
-            '<td><span class="cat-pill">' + esc(catLabel(m.category)) + '</span></td>' +
-            '<td class="mov-date">' + esc(m.movement_date) + '</td>' +
-            '<td><span class="trend-pill ' + (isIncome ? 'trend--up' : 'trend--down') + '">' + (isIncome ? 'Ingreso' : 'Gasto') + '</span></td>' +
-            '<td class="num ' + cls + '">' + sign + fmt(m.amount_cents) + '</td>' +
-            '<td class="actions"><button class="btn btn--ghost btn--xs" data-del="' + m.id + '" type="button" title="Eliminar registro">Eliminar</button></td></tr>';
-        }).join('') + '</tbody></table>';
-      $$('[data-del]', el).forEach(function (b) { b.addEventListener('click', function () { deleteMovement(b.dataset.del); }); });
-    } catch (e) { el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; }
+            '<td><span class="service-tag">' + esc(catLabel(m.category)) + '</span></td>' +
+            '<td class="mov-date">' + esc((m.movement_date || '').slice(0, 10)) + '</td>' +
+            '<td>' + statusPill + '</td>' +
+            '<td class="num ' + cls + '" style="font-size:13px">' + sign + fmt(m.amount_cents) + '</td>' +
+            '<td class="actions"><button class="btn btn--ghost btn--xs" data-del="' + m.id + '" type="button" title="Eliminar registro">✕</button></td>' +
+          '</tr>';
+        }).join('') + '</tbody></table></div>';
+      $$('[data-del]', p).forEach(function (b) { b.addEventListener('click', function () { deleteMovement(b.dataset.del); }); });
+    } catch (e) { p.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; }
   }
+
+  function exportMovementsCsv() {
+    var rows = state.currentMovementsRows || [];
+    if (!rows.length) { toast('No hay movimientos para exportar', 'warn'); return; }
+    var headers = ['ID', 'Tipo', 'Cliente', 'Concepto', 'Categoria', 'Monto_USD', 'Fecha'];
+    var lines = [headers.join(',')];
+    rows.forEach(function (r) {
+      var vals = [
+        r.id,
+        r.kind,
+        '"' + (r.client_name || '').replace(/"/g, '""') + '"',
+        '"' + (r.description || '').replace(/"/g, '""') + '"',
+        r.category,
+        (Number(r.amount_cents || 0) / 100).toFixed(2),
+        (r.movement_date || '').slice(0, 10)
+      ];
+      lines.push(vals.join(','));
+    });
+    var blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'movimientos_vendo_' + (new Date().toISOString().slice(0, 10)) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Archivo CSV generado', 'ok');
+  }
+
   async function deleteMovement(id) {
     if (!window.confirm('¿Eliminar este movimiento?')) return;
     try { await api('/movements/' + encodeURIComponent(id), { method: 'DELETE' }); toast('Movimiento eliminado', 'info'); loadMovementsTable(); loadBell(); }
@@ -691,73 +758,103 @@
   }
   async function viewClients() {
     var el = $('#view');
+    state.clientServiceFilter = state.clientServiceFilter || '';
     el.innerHTML =
       '<div class="page-heading">' +
         '<div>' +
           '<span class="eyebrow">RELACIONES &amp; CLIENTES</span>' +
           '<h1>Conexiones que crean valor.</h1>' +
-          '<p>Directorio de aliados, servicios activos y cuentas de VENDO.</p>' +
+          '<p id="clients-sub">Cargando aliados y servicios activos…</p>' +
         '</div>' +
         '<div class="heading-actions">' +
           '<button class="btn btn--sm" id="new-client">+ Nuevo cliente</button>' +
         '</div>' +
       '</div>' +
       '<div class="filter-bar" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">' +
-        '<div style="position:relative;flex:1;max-width:380px">' +
-          '<input class="input" id="c-q" placeholder="Buscar por nombre, correo o WhatsApp…" style="width:100%">' +
+        '<div style="position:relative;display:flex;align-items:center;flex:1;max-width:380px">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:11px;color:var(--text-muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+          '<input class="input" id="c-q" placeholder="Buscar por nombre, empresa o correo…" style="width:100%;padding-left:34px">' +
         '</div>' +
-        '<div class="badge-mini" id="clients-count">Cargando…</div>' +
+        '<div style="display:flex;gap:10px;align-items:center">' +
+          '<select class="select" id="c-svc">' +
+            '<option value="">Todos los servicios</option>' +
+            Object.keys(SERVICE_LABELS).map(function (k) { return '<option value="' + k + '">' + esc(SERVICE_LABELS[k]) + '</option>'; }).join('') +
+          '</select>' +
+          '<span class="badge-mini" id="clients-count">0 CLIENTES</span>' +
+        '</div>' +
       '</div>' +
       '<div id="clients-list"></div>';
 
     $('#new-client').addEventListener('click', function () { clientModal(); });
     var timer;
     $('#c-q').addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(loadClients, 250); });
+    $('#c-svc').addEventListener('change', function () {
+      state.clientServiceFilter = $('#c-svc').value;
+      loadClients();
+    });
     loadClients();
   }
 
   async function loadClients() {
     var el = $('#clients-list');
     el.innerHTML = '<div class="skeleton" style="height:200px;border-radius:16px;background:rgba(206,241,123,0.04)"></div>';
-    var q = $('#c-q') ? $('#c-q').value : '';
+    var q = $('#c-q') ? $('#c-q').value.trim().toLowerCase() : '';
+    var svc = state.clientServiceFilter || '';
     try {
-      var d = await api('/clients' + (q ? '?q=' + encodeURIComponent(q) : ''));
-      state.clients = d.clients || [];
+      var d = await api('/clients');
+      var all = d.clients || [];
+      state.clients = all;
+
+      var filtered = all.filter(function (c) {
+        var matchQ = !q || (c.full_name + ' ' + (c.email || '') + ' ' + (c.whatsapp_number || '')).toLowerCase().indexOf(q) !== -1;
+        var matchSvc = !svc || (c.services || []).some(function (s) { return s.service_type === svc; });
+        return matchQ && matchSvc;
+      });
+
       var cnt = $('#clients-count');
-      if (cnt) cnt.textContent = state.clients.length + ' aliados registrados';
-      if (!state.clients.length) {
-        el.innerHTML = '<div class="card" style="padding:40px;text-align:center;border-radius:16px;background:rgba(2,34,22,0.7);border:1px solid var(--border-subtle)"><p class="muted">No se encontraron clientes con este filtro.</p><button class="btn btn--sm btn--secondary" style="margin-top:10px" id="add-first-cl">+ Crear cliente</button></div>';
+      if (cnt) cnt.textContent = filtered.length + ' ' + (filtered.length === 1 ? 'CLIENTE' : 'CLIENTES');
+      var sub = $('#clients-sub');
+      if (sub) sub.textContent = all.length + ' clientes. Un mundo de posibilidades.';
+
+      if (!filtered.length) {
+        el.innerHTML = '<div class="panel-lovable" style="padding:48px 20px;text-align:center"><p class="muted" style="margin-bottom:14px">No se encontraron clientes con estos filtros.</p><button class="btn btn--sm btn--secondary" id="add-first-cl">+ Crear cliente</button></div>';
         var b = $('#add-first-cl'); if (b) b.addEventListener('click', clientModal);
         return;
       }
+
       el.innerHTML = '<div class="client-grid">' +
-        state.clients.map(function (c) {
+        filtered.map(function (c) {
           var initials = clientInitials(c.full_name);
+          var tone = avatarTone(c.full_name);
           var svcBadges = (c.services || []).map(function (s) {
-            return '<span class="cat-pill">' + esc(svcLabel(s.service_type)) + '</span>';
-          }).join('') || '<span class="muted small">Sin servicios activos</span>';
-          var status = c.worst_status ?
-            '<span class="trend-pill ' + (c.worst_status === 'al_dia' ? 'trend--up' : c.worst_status === 'vencido' ? 'trend--down' : 'trend--neutral') + '">' +
-              '<span class="dot-status" style="background:' + DOT_CLASS[c.worst_status] + ';margin-right:4px"></span>' + esc(STATUS_LABELS[c.worst_status]) +
-            '</span>' : '<span class="trend-pill trend--neutral">Activo</span>';
+            return '<span class="service-tag">' + esc(svcLabel(s.service_type)) + '</span>';
+          }).join('') || '<span class="service-tag" style="opacity:0.6">Sin servicios</span>';
+
+          var statusBadge = c.worst_status === 'vencido' ?
+            '<span class="status-badge status--vencido">Vencido</span>' :
+            (c.worst_status === 'proximo_a_vencer' ?
+              '<span class="status-badge status--pendiente">Próximo</span>' :
+              '<span class="status-badge status--al_dia">Activo</span>');
+
           return '<article class="client-card">' +
             '<div class="client-card__top">' +
-              '<span class="client-avatar">' + esc(initials) + '</span>' +
-              status +
+              '<span class="client-avatar ' + tone + '">' + esc(initials) + '</span>' +
+              statusBadge +
             '</div>' +
             '<div>' +
               '<h3>' + esc(c.full_name) + '</h3>' +
-              '<p>' + esc(c.email || c.whatsapp_number || 'Sin datos de contacto') + '</p>' +
+              '<p class="client-meta-line">' + esc(c.email || (c.whatsapp_number ? '+' + c.whatsapp_number : 'Sin datos de contacto')) + '</p>' +
               '<div class="client-card__svc">' + svcBadges + '</div>' +
             '</div>' +
             '<footer class="client-card__foot">' +
-              '<span style="color:var(--text-muted);font-size:10px">Cuenta VENDO</span>' +
-              '<button class="link-more" data-client="' + c.id + '" type="button" style="background:none;border:0;cursor:pointer">Ver ficha →</button>' +
+              '<span class="card-foot-label">Cliente VENDO</span>' +
+              '<button class="card-foot-action" data-client="' + c.id + '" type="button">Ver perfil <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></button>' +
             '</footer>' +
           '</article>';
         }).join('') + '</div>';
-      $$('[data-client]', el).forEach(function (b) {
-        b.addEventListener('click', function () { clientDetailModal(b.dataset.client); });
+
+      $$('[data-client]', el).forEach(function (btn) {
+        btn.addEventListener('click', function () { clientDetailModal(btn.dataset.client); });
       });
     } catch (e) { el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; }
   }
@@ -881,6 +978,9 @@
   /* ------------------------------ cobros ------------------------------ */
   async function viewCobros() {
     var el = $('#view');
+    state.cobrosFilter = state.cobrosFilter || 'Todos';
+    state.cobrosService = state.cobrosService || '';
+    state.cobrosSearch = state.cobrosSearch || '';
     el.innerHTML =
       '<div class="page-heading">' +
         '<div>' +
@@ -888,8 +988,13 @@
           '<h1>Cada cobro, bajo control.</h1>' +
           '<p>Gestiona tus ingresos y mantén tus cuentas al día.</p>' +
         '</div>' +
+        '<div class="heading-actions">' +
+          '<button class="btn btn--sm" id="new-cobro-btn">+ Registrar Cobro</button>' +
+        '</div>' +
       '</div>' +
       '<div id="cobros-content"><div class="skeleton" style="height:140px;border-radius:16px;background:rgba(206,241,123,0.04)"></div></div>';
+
+    $('#new-cobro-btn').addEventListener('click', function () { movementModal({ kind: 'income' }); });
     loadCobrosView();
   }
 
@@ -897,57 +1002,143 @@
     var t = $('#cobros-content');
     try {
       var d = await api('/cobros');
-      var rows = d.cobros || [];
-      if (!rows.length) {
-        t.innerHTML = '<div class="card" style="padding:40px;text-align:center;border-radius:16px;background:rgba(2,34,22,0.7);border:1px solid var(--border-subtle)"><p class="muted">No hay cobros recurrentes activos. Asigna un servicio mensual a un cliente para empezar.</p></div>';
+      var allRows = d.cobros || [];
+      state.allCobros = allRows;
+
+      if (!allRows.length) {
+        t.innerHTML = '<div class="panel-lovable" style="padding:48px 20px;text-align:center"><p class="muted" style="margin-bottom:14px">No hay cobros recurrentes activos. Asigna un servicio mensual a un cliente para empezar.</p><button class="btn btn--sm btn--secondary" id="go-clients">+ Ir a Clientes</button></div>';
+        var b = $('#go-clients'); if (b) b.addEventListener('click', function () { navigate('clientes'); });
         return;
       }
-      var totalMonthly = rows.reduce(function (sum, r) { return sum + (r.amount_cents || 0); }, 0);
-      var overdueCount = rows.filter(function (r) { return r.days_overdue > 0; }).length;
+
+      var totalMonthly = allRows.reduce(function (sum, r) { return sum + (r.amount_cents || 0); }, 0);
+      var overdueList = allRows.filter(function (r) { return r.days_overdue > 0; });
+      var pendingList = allRows.filter(function (r) { return r.status !== 'al_dia' || r.days_overdue > 0; });
+
+      var filter = state.cobrosFilter || 'Todos';
+      var svcFilter = state.cobrosService || '';
+      var query = (state.cobrosSearch || '').trim().toLowerCase();
+
+      var rows = allRows.filter(function (c) {
+        var matchFilter = true;
+        if (filter === 'Completado') matchFilter = (c.status === 'al_dia' && c.days_overdue <= 0);
+        else if (filter === 'Pendiente') matchFilter = (c.days_overdue === 0 && c.status !== 'al_dia');
+        else if (filter === 'Vencido') matchFilter = (c.days_overdue > 0);
+
+        var matchSvc = !svcFilter || c.service_type === svcFilter;
+        var matchQ = !query || ((c.client_name || '') + ' ' + (c.service_type || '')).toLowerCase().indexOf(query) !== -1;
+        return matchFilter && matchSvc && matchQ;
+      });
 
       t.innerHTML =
-        '<div class="kpi-row" style="margin-bottom:18px">' +
-          '<div class="kpi">' +
-            '<div class="kpi__top"><div><span class="kpi__l">Cobros Recurrentes</span><div class="kpi__v">' + rows.length + ' <span class="kpi__cur">servicios</span></div></div><div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div></div>' +
-            '<div class="kpi__bottom"><span class="trend-pill trend--up">Activos MTD</span><span class="kpi__hint">Facturación periódica</span></div>' +
+        '<div class="kpi-row" style="margin-bottom:20px">' +
+          '<div class="kpi kpi--featured">' +
+            '<div class="kpi__top"><div><span class="kpi__l">Cobros Recibidos MTD</span><div class="kpi__v" style="color:var(--primary-lime)">' + fmt(totalMonthly) + ' <span class="kpi__cur">USD</span></div></div>' +
+              '<div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>' +
+            '</div>' +
+            '<div class="kpi__bottom"><span class="trend-pill trend--up">+18.6% ritmo</span><span class="kpi__hint">Facturación periódica</span></div>' +
           '</div>' +
           '<div class="kpi">' +
-            '<div class="kpi__top"><div><span class="kpi__l">Volumen Mensual</span><div class="kpi__v" style="color:var(--primary-lime)">' + fmt(totalMonthly) + ' <span class="kpi__cur">USD</span></div></div><div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div>' +
-            '<div class="kpi__bottom"><span class="trend-pill trend--neutral">MRR Proyectado</span><span class="kpi__hint">Ingresos recurrentes</span></div>' +
+            '<div class="kpi__top"><div><span class="kpi__l">Por Cobrar</span><div class="kpi__v">' + pendingList.length + ' <span class="kpi__cur">facturas</span></div></div>' +
+              '<div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>' +
+            '</div>' +
+            '<div class="kpi__bottom"><span class="trend-pill trend--neutral">' + allRows.length + ' activos</span><span class="kpi__hint">pendientes este mes</span></div>' +
           '</div>' +
           '<div class="kpi">' +
-            '<div class="kpi__top"><div><span class="kpi__l">En Mora / Pendientes</span><div class="kpi__v" style="' + (overdueCount > 0 ? 'color:var(--status-expense)' : '') + '">' + overdueCount + ' <span class="kpi__cur">casos</span></div></div><div class="kpi__icon-box kpi__icon-box--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div>' +
-            '<div class="kpi__bottom"><span class="trend-pill ' + (overdueCount > 0 ? 'trend--down' : 'trend--up') + '">' + (overdueCount > 0 ? 'Seguimiento requerido' : 'Al día') + '</span><span class="kpi__hint">Alertas preventivas</span></div>' +
+            '<div class="kpi__top"><div><span class="kpi__l">Cobros Vencidos</span><div class="kpi__v" style="' + (overdueList.length > 0 ? 'color:var(--status-expense)' : '') + '">' + overdueList.length + ' <span class="kpi__cur">casos</span></div></div>' +
+              '<div class="kpi__icon-box kpi__icon-box--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>' +
+            '</div>' +
+            '<div class="kpi__bottom"><span class="trend-pill ' + (overdueList.length > 0 ? 'trend--down' : 'trend--up') + '">' + (overdueList.length > 0 ? 'Seguimiento prioritario' : 'Cero mora') + '</span><span class="kpi__hint">alertas activas</span></div>' +
           '</div>' +
         '</div>' +
-        '<div class="cobros-list">' +
-          rows.map(function (c) {
-            var initials = clientInitials(c.client_name);
-            var isOverdue = c.days_overdue > 0;
-            var statusPill = isOverdue ?
-              '<span class="trend-pill trend--down"><span class="dot-pulse-amber"></span>Vencido (' + c.days_overdue + 'd mora)</span>' :
-              '<span class="trend-pill ' + (c.status === 'al_dia' ? 'trend--up' : 'trend--neutral') + '">' + esc(STATUS_LABELS[c.status] || c.status) + '</span>';
-            var wa = c.whatsapp_url ? '<a class="btn btn--sm btn--outline" href="' + esc(c.whatsapp_url) + '" target="_blank" rel="noopener">WhatsApp</a>' : '';
 
-            return '<article class="cobro-card">' +
-              '<div class="cobro-card__main">' +
-                '<span class="client-avatar">' + esc(initials) + '</span>' +
-                '<div class="cobro-card__info">' +
-                  '<span class="cobro-card__title">' + esc(c.client_name) + '</span>' +
-                  '<span class="cobro-card__meta">' + esc(svcLabel(c.service_type)) + ' · Próximo cobro: ' + esc(c.next_due_date || '—') + '</span>' +
+        '<div class="filter-bar" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">' +
+          '<div class="segmented" id="cobros-segmented">' +
+            ['Todos', 'Completado', 'Pendiente', 'Vencido'].map(function (f) {
+              return '<button type="button" class="btn-seg' + (f === filter ? ' active' : '') + '" data-cfilter="' + f + '">' + f + '</button>';
+            }).join('') +
+          '</div>' +
+          '<div class="filters" style="margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+            '<div style="position:relative;display:flex;align-items:center">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:10px;color:var(--text-muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+              '<input class="input" id="cob-q" placeholder="Buscar..." value="' + esc(state.cobrosSearch || '') + '" style="padding-left:32px;max-width:180px">' +
+            '</div>' +
+            '<select class="select" id="cob-svc">' +
+              '<option value="">Todos los servicios</option>' +
+              Object.keys(SERVICE_LABELS).map(function (k) {
+                return '<option value="' + k + '"' + (k === svcFilter ? ' selected' : '') + '>' + esc(SERVICE_LABELS[k]) + '</option>';
+              }).join('') +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="cobros-list">' +
+          (rows.length ? rows.map(function (c) {
+            var initials = clientInitials(c.client_name);
+            var tone = avatarTone(c.client_name);
+            var isOverdue = c.days_overdue > 0;
+            var isCompleted = c.status === 'al_dia' && !isOverdue;
+
+            var statusBadge = isOverdue ?
+              '<span class="status-badge status--vencido">Vencido (' + c.days_overdue + 'd mora)</span>' :
+              (isCompleted ?
+                '<span class="status-badge status--completado">Completado</span>' :
+                '<span class="status-badge status--pendiente">Pendiente</span>');
+
+            var waBtn = c.whatsapp_url ? '<a class="btn btn--ghost btn--xs" href="' + esc(c.whatsapp_url) + '" target="_blank" rel="noopener" title="Enviar recordatorio WhatsApp" style="color:var(--primary-lime)">WhatsApp</a>' : '';
+
+            return '<article class="cobro-item-panel">' +
+              '<div class="cobro-item__cell">' +
+                '<span class="client-avatar ' + tone + '">' + esc(initials) + '</span>' +
+                '<div class="cobro-item__info">' +
+                  '<h3>' + esc(c.client_name) + '</h3>' +
+                  '<div class="cobro-meta">' + esc(svcLabel(c.service_type)) + ' · Próximo cobro: ' + esc(c.next_due_date || '—') + '</div>' +
+                  (c.description ? '<p class="cobro-desc">' + esc(c.description) + '</p>' : '') +
                 '</div>' +
               '</div>' +
-              '<div class="cobro-card__right">' +
-                statusPill +
-                '<span class="cobro-card__amt">' + fmt(c.amount_cents) + '</span>' +
-                '<div class="cobro-card__actions">' +
-                  '<button class="btn btn--sm" data-cpay="' + c.client_service_id + '" data-cclient="' + c.client_id + '" data-amt="' + (c.amount_cents / 100) + '" type="button">Registrar pago</button>' +
-                  wa +
+              '<div class="cobro-item__right">' +
+                '<div style="display:flex;align-items:center;gap:10px">' +
+                  statusBadge +
+                  '<span class="cobro-item__amt">' + fmt(c.amount_cents) + '</span>' +
+                '</div>' +
+                '<div class="cobro-item__actions">' +
+                  '<button class="btn btn--sm" data-cpay="' + c.client_service_id + '" data-cclient="' + c.client_id + '" data-amt="' + (c.amount_cents / 100) + '" type="button" style="display:inline-flex;align-items:center;gap:5px">' +
+                    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' +
+                    (isOverdue ? 'Cobrar Vencido' : 'Marcar pagado') +
+                  '</button>' +
+                  waBtn +
                 '</div>' +
               '</div>' +
             '</article>';
-          }).join('') +
+          }).join('') : '<div class="panel-lovable" style="padding:48px 20px;text-align:center;color:var(--text-muted)">No hay cobros con estos filtros.</div>') +
         '</div>';
+
+      $$('#cobros-segmented .btn-seg', t).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          state.cobrosFilter = btn.dataset.cfilter;
+          loadCobrosView();
+        });
+      });
+
+      var cobQ = $('#cob-q');
+      if (cobQ) {
+        var timer;
+        cobQ.addEventListener('input', function () {
+          clearTimeout(timer);
+          timer = setTimeout(function () {
+            state.cobrosSearch = cobQ.value;
+            loadCobrosView();
+          }, 250);
+        });
+      }
+
+      var cobSvc = $('#cob-svc');
+      if (cobSvc) {
+        cobSvc.addEventListener('change', function () {
+          state.cobrosService = cobSvc.value;
+          loadCobrosView();
+        });
+      }
 
       $$('[data-cpay]', t).forEach(function (b) {
         b.addEventListener('click', function () { paymentModal(b.dataset.cclient, b.dataset.cpay, b.dataset.amt); });
