@@ -240,3 +240,99 @@ footer{padding:36px 0;color:var(--mut);font-size:14px}footer .wrap{display:flex;
 .btn-modal-submit:hover{transform:translateY(-2px);background:#dff899}
 
 @media(max-width:600px){.modal-card{padding:26px 18px;border-radius:20px}.modal-header h3{font-size:20px}.btn-modal-submit{font-size:15px}.modal-overlay{padding:12px}.chip-btn{font-size:12px;padding:8px 12px}.ig-preview-box{gap:10px}.ig-verify-btn{white-space:normal}}
+
+/* ==========================================
+   ENLACE DE NAVEGACIÓN "CONECTA"
+   ========================================== */
+.nav-link{font-family:"Fredoka","Trebuchet MS",sans-serif;font-weight:600;font-size:15px;color:var(--cream);text-decoration:none;white-space:nowrap;padding:8px 4px;transition:color .15s}
+.nav-link:hover{color:var(--lime);text-decoration:none}
+.nav-link:focus-visible{outline:3px solid var(--lime);outline-offset:3px;border-radius:6px}
+
+/* ==========================================
+   SECCIÓN VÉNDO CONECTA · SERVICIO MENSUAL
+   ========================================== */
+.conecta-section{position:relative;padding:90px 0;background:var(--ink);border-top:2px solid var(--forest)}
+.conecta-head{max-width:74ch;margin-bottom:46px}
+.conecta-head h2{font-size:clamp(30px,4.6vw,50px);color:var(--cream);margin:14px 0 16px;line-height:1.08;letter-spacing:-.02em}
+.conecta-head p{color:var(--mut);line-height:1.65}
+
+/* Pilares (grid de 3 columnas) */
+.conecta-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:46px}
+.pillar{position:relative;background:#022418;border:1px solid var(--forest);border-radius:22px;padding:28px;transition:transform .2s,border-color .2s,box-shadow .2s}
+.pillar:hover{border-color:var(--lime);transform:translateY(-3px);box-shadow:0 10px 28px rgba(1,68,44,.28)}
+.pillar-icon{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;font-size:27px;background:rgba(206,241,123,.1);border:1px solid rgba(206,241,123,.25);margin-bottom:18px}
+.pillar-num{position:absolute;top:26px;right:28px;font-family:"Space Mono",monospace;font-size:13px;font-weight:700;color:rgba(206,241,123,.5);letter-spacing:.05em}
+.pillar h3{font-size:21px;color:var(--cream);margin-bottom:10px;line-height:1.2}
+.pillar p{color:var(--mut);font-size:15px;line-height:1.6;margin:0}
+
+/* Tarjeta destacada: El Ecosistema Vendo Club */
+.conecta-eco{position:relative;display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center;background:linear-gradient(150deg,#021a11,#01110a 62%);border:1px solid var(--forest);border-radius:28px;padding:44px;margin-bottom:44px;overflow:hidden}
+.conecta-eco::before{content:"";position:absolute;left:-90px;top:-90px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(206,241,123,.14),transparent 70%);pointer-events:none}
+.eco-copy{position:relative;z-index:1}
+.eco-copy h3{font-size:clamp(24px,3vw,32px);color:var(--cream);margin:14px 0 12px;line-height:1.15}
+.eco-copy p{color:var(--mut);line-height:1.65;margin:0 0 20px}
+.eco-list{list-style:none;padding:0;margin:0 0 26px;display:flex;flex-direction:column;gap:10px}
+.eco-list li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:#d1e7d8;line-height:1.5}
+.eco-list li>span:first-child{color:var(--lime);font-weight:700;flex:none;margin-top:1px}
+.eco-visual{position:relative;z-index:1;display:flex;justify-content:center}
+
+/* Mockup de teléfono con carnet VIP */
+.mini-phone{position:relative;width:min(300px,100%);border-radius:36px;padding:20px 16px 18px;background:#010d08;border:1px solid #0e2a1d;box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 6px rgba(206,241,123,.05)}
+.mini-phone::before{content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);width:66px;height:5px;border-radius:99px;background:rgba(248,255,230,.16)}
+.mini-carnet{position:relative;overflow:hidden;border-radius:20px;padding:16px;margin-top:6px;aspect-ratio:1.59/1;display:flex;flex-direction:column;justify-content:space-between;color:var(--cream);background:linear-gradient(135deg,#036a45,#01241a 78%);border:1px solid rgba(206,241,123,.4);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.mini-carnet::after{content:"";position:absolute;right:-46px;top:-46px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(206,241,123,.34),transparent 70%)}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.mc-type{font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(248,255,230,.62)}
+.mc-club{font-family:"Fredoka",sans-serif;font-weight:600;font-size:19px;line-height:1.1;margin-top:2px}
+.mc-chip{width:38px;height:27px;border-radius:6px;flex:none;background:linear-gradient(135deg,#e9d27a,#b9942f);opacity:.92}
+.mc-name{font-family:"Fredoka",sans-serif;font-weight:600;font-size:16px;position:relative;z-index:1;letter-spacing:.01em}
+.mc-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;position:relative;z-index:1}
+.mc-label{font-family:"Space Mono",monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:rgba(248,255,230,.6)}
+.mc-value{font-family:"Space Mono",monospace;font-size:12px;font-weight:700}
+.mini-status{display:inline-flex;align-items:center;gap:6px;font-family:"Space Mono",monospace;font-size:10px;font-weight:700;color:var(--lime);background:rgba(1,17,10,.55);border:1px solid rgba(206,241,123,.35);padding:4px 9px;border-radius:99px}
+.mini-status::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px rgba(206,241,123,.22)}
+
+.float-chip{position:absolute;z-index:2;font-family:"Space Mono",monospace;font-size:11px;font-weight:700;color:var(--cream);background:#012418;border:1px solid rgba(206,241,123,.35);padding:7px 12px;border-radius:99px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.45);animation:floatY 4.5s ease-in-out infinite}
+.float-chip.tl{top:-12px;left:-16px}
+.float-chip.br{bottom:-12px;right:-14px;animation-delay:1.4s}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* CTA final a cotización */
+.conecta-cta{display:flex;justify-content:space-between;align-items:center;gap:26px;flex-wrap:wrap;background:var(--lime);color:var(--ink);border-radius:28px;padding:36px 34px;box-shadow:0 14px 40px rgba(206,241,123,.18)}
+.conecta-cta .cta-text{max-width:52ch}
+.conecta-cta h3{font-size:clamp(22px,2.6vw,30px);color:var(--ink);line-height:1.15;margin-bottom:8px}
+.conecta-cta p{color:#013824;font-size:15px;margin:0}
+.conecta-cta .btn{background:var(--ink);color:var(--cream);flex:none}
+.conecta-cta .btn:hover{background:#00251a}
+
+@media(max-width:900px){
+.conecta-pillars{grid-template-columns:1fr}
+.conecta-eco{grid-template-columns:1fr;gap:34px;padding:30px 22px}
+.conecta-eco .bento-badge{margin-bottom:0}
+.conecta-cta{flex-direction:column;align-items:stretch;padding:28px 22px;text-align:center}
+.conecta-cta .cta-text{max-width:none}
+.conecta-cta .btn{width:100%}
+.eco-visual{margin-top:6px}
+.float-chip.tl{left:0}
+.float-chip.br{right:0}
+}
+@media(max-width:600px){
+.conecta-section{padding:70px 0}
+.conecta-head{margin-bottom:34px}
+.pillar{padding:22px}
+.mini-phone{width:100%;max-width:300px}
+.float-chip.tl{top:-10px;left:0}
+.float-chip.br{bottom:-12px;right:0}
+}
+@media(prefers-reduced-motion:reduce){.float-chip{animation:none}.pillar:hover{transform:none}}
+
+/* Navegación compacta en móviles (evita desborde con el enlace Conecta) */
+@media(max-width:600px){
+.logo{height:26px}
+nav{gap:8px}
+.nav-actions{gap:6px}
+.nav-link{font-size:13.5px;padding:8px 2px}
+nav .btn.ghost{padding:9px 12px;font-size:14px}
+.lang-switch-btn{padding:8px 8px;font-size:12px}
+}
+@media(max-width:340px){.nav-link{display:none}}
