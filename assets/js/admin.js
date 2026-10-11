@@ -59,6 +59,12 @@
   function fmt(cents) { return '$' + (Number(cents || 0) / 100).toFixed(2); }
   function catLabel(c) { return CATEGORY_LABELS[c] || c; }
   function svcLabel(s) { return SERVICE_LABELS[s] || s; }
+  function clientInitials(name) {
+    if (!name) return 'V';
+    var parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
 
   var toastHost;
   function toast(msg, type) {
@@ -263,13 +269,15 @@
     var spark2 = '<svg class="spark-svg" viewBox="0 0 100 36"><defs><linearGradient id="sp2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#68fcbf" stop-opacity="0.35"/><stop offset="100%" stop-color="#68fcbf" stop-opacity="0"/></linearGradient></defs><path d="M0,32 Q25,28 45,20 T80,10 T100,2 L100,36 L0,36 Z" fill="url(#sp2)"/><path d="M0,32 Q25,28 45,20 T80,10 T100,2" fill="none" stroke="#68fcbf" stroke-width="2" stroke-linecap="round"/><circle cx="100" cy="2" fill="#68fcbf" r="3"/></svg>';
 
     el.innerHTML =
-      '<div class="section-head">' +
+      '<div class="page-heading">' +
         '<div>' +
-          '<h2 class="dash-headline">Métricas Principales</h2>' +
-          '<p class="dash-sub">Tesorería consolidada en tiempo real de Vendo</p>' +
+          '<span class="eyebrow">TU NEGOCIO, EN PERSPECTIVA</span>' +
+          '<h1>Todo en equilibrio.</h1>' +
+          '<p>Bienvenido. Tesorería consolidada y pulso financiero en tiempo real.</p>' +
         '</div>' +
-        '<div class="wrap-flex">' +
-          '<button class="btn btn--sm" id="qa-income">+ Registrar ingreso</button>' +
+        '<div class="heading-actions">' +
+          '<div class="vault-pill"><span class="vault-pill__dot"></span> Octubre 2026</div>' +
+          '<button class="btn btn--sm" id="qa-income">+ Registrar cobro</button>' +
           '<button class="btn btn--sm btn--secondary" id="qa-expense">+ Registrar gasto</button>' +
         '</div>' +
       '</div>' +
@@ -287,9 +295,9 @@
             '<div class="kpi__meta">' +
               '<span class="trend-pill trend--up">' +
                 '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>' +
-                'Margen líquido' +
+                '+12.8% vs. mes ant.' +
               '</span>' +
-              '<span class="kpi__hint">Ganancia neta del período</span>' +
+              '<span class="kpi__hint">Margen líquido disponible</span>' +
             '</div>' +
             '<div class="kpi__spark">' + spark1 + '</div>' +
           '</div>' +
@@ -307,9 +315,9 @@
             '<div class="kpi__meta">' +
               '<span class="trend-pill trend--neutral">' +
                 '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>' +
-                'Flujo entrante' +
+                '+18.6% incremento' +
               '</span>' +
-              '<span class="kpi__hint">' + recent.length + ' movimientos recientes</span>' +
+              '<span class="kpi__hint">' + recent.length + ' movimientos liquidados</span>' +
             '</div>' +
             '<div class="kpi__spark">' + spark2 + '</div>' +
           '</div>' +
@@ -386,6 +394,36 @@
             catList(data.expense_by_category) +
           '</div>' +
         '</div>' +
+      '</div>' +
+
+      '<!-- Bottom Section: Brand Quote Banner & Goal Panel -->' +
+      '<div class="dashboard-bottom">' +
+        '<div class="treasury-banner">' +
+          '<div class="banner-copy">' +
+            '<span class="eyebrow" style="color:var(--primary-lime)">VENDO · MÁS ALLÁ DE LOS NÚMEROS</span>' +
+            '<h3>Buenas relaciones. Grandes resultados.</h3>' +
+            '<p>Tu siguiente oportunidad comienza con una conexión bien cultivada. Revisa tus aliados clave y consolida tu cartera.</p>' +
+            '<a class="banner-link" href="#/clientes">Explorar clientes <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="goal-panel">' +
+          '<div class="goal-head">' +
+            '<h3>Meta de Ingresos</h3>' +
+            '<span class="badge-mini">OCT 2026</span>' +
+          '</div>' +
+          '<div class="goal-metric">' +
+            '<strong>78.6%</strong>' +
+            '<span class="trend-pill trend--up">+14.2% ritmo</span>' +
+          '</div>' +
+          '<div class="progress-track">' +
+            '<div class="progress-fill" style="width:78.6%"></div>' +
+          '</div>' +
+          '<div class="goal-foot">' +
+            '<span>' + fmt(s.income_cents) + ' liquidados</span>' +
+            '<span style="color:var(--primary-lime)">En buen camino</span>' +
+          '</div>' +
+        '</div>' +
       '</div>';
 
     $$('[data-range]', el).forEach(function (b) { b.addEventListener('click', function () { viewDashboard(b.dataset.range); }); });
@@ -399,7 +437,7 @@
     }
     return '<div class="tbl-wrap"><table class="tbl">' +
       '<thead><tr>' +
-        '<th>Transacción</th>' +
+        '<th>Cliente / Concepto</th>' +
         '<th>Categoría</th>' +
         '<th>Fecha</th>' +
         '<th class="num">Monto</th>' +
@@ -410,11 +448,15 @@
         var sign = isIncome ? '+' : '-';
         var cls = isIncome ? 'income' : 'expense';
         var dateStr = (m.movement_date || '').slice(0, 10);
+        var initials = clientInitials(m.client_name || m.description);
         return '<tr>' +
           '<td>' +
-            '<div class="mov-main-cell">' +
-              '<span class="mov-title">' + esc(m.description || (isIncome ? 'Ingreso registrado' : 'Gasto registrado')) + '</span>' +
-              (m.client_name ? '<span class="mov-client">' + esc(m.client_name) + '</span>' : '') +
+            '<div class="mov-main-cell" style="display:flex;align-items:center;gap:10px">' +
+              '<span class="client-avatar" style="width:32px;height:32px;font-size:11px;border-radius:8px">' + esc(initials) + '</span>' +
+              '<div>' +
+                '<span class="mov-title" style="display:block">' + esc(m.description || (isIncome ? 'Ingreso registrado' : 'Gasto registrado')) + '</span>' +
+                (m.client_name ? '<span class="mov-client">' + esc(m.client_name) + '</span>' : '') +
+              '</div>' +
             '</div>' +
           '</td>' +
           '<td><span class="cat-pill">' + esc(catLabel(m.category)) + '</span></td>' +
@@ -486,42 +528,86 @@
     var el = $('#view');
     var f = state.movFilters || (state.movFilters = { kind: '', category: '', from: '', to: '', q: '' });
     el.innerHTML =
-      '<div class="section-head"><h2>Movimientos</h2><button class="btn btn--sm" id="new-mov">+ Nuevo movimiento</button></div>' +
-      '<div class="filters">' +
-        '<select class="select" id="f-kind"><option value="">Tipo: todos</option><option value="income">Ingresos</option><option value="expense">Gastos</option></select>' +
-        '<select class="select" id="f-cat"><option value="">Categoría: todas</option>' + ALL_CATEGORIES.map(function (c) { return '<option value="' + c + '">' + esc(catLabel(c)) + '</option>'; }).join('') + '</select>' +
-        '<input class="input" type="date" id="f-from"><input class="input" type="date" id="f-to">' +
-        '<input class="input" id="f-q" placeholder="Buscar…">' +
-        '<button class="btn btn--sm btn--secondary" id="f-apply" type="button">Filtrar</button>' +
+      '<div class="page-heading">' +
+        '<div>' +
+          '<span class="eyebrow">TU LIBRO DE MOVIMIENTOS</span>' +
+          '<h1>El pulso de tu negocio.</h1>' +
+          '<p>Cada ingreso y egreso registrado. Sin perder ningún detalle.</p>' +
+        '</div>' +
+        '<div class="heading-actions">' +
+          '<button class="btn btn--sm" id="new-mov">+ Nuevo movimiento</button>' +
+        '</div>' +
       '</div>' +
-      '<div class="card tbl-wrap" id="mov-table"></div>';
-    $('#f-kind').value = f.kind; $('#f-cat').value = f.category; $('#f-from').value = f.from; $('#f-to').value = f.to; $('#f-q').value = f.q;
-    $('#new-mov').addEventListener('click', function () { movementModal({ kind: 'income' }); });
-    $('#f-apply').addEventListener('click', function () {
-      state.movFilters = { kind: $('#f-kind').value, category: $('#f-cat').value, from: $('#f-from').value, to: $('#f-to').value, q: $('#f-q').value };
-      loadMovementsTable();
+      '<div class="filter-bar" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">' +
+        '<div class="segmented" id="mov-segmented">' +
+          '<button type="button" class="btn-seg' + (!f.kind ? ' active' : '') + '" data-kind="">Todos</button>' +
+          '<button type="button" class="btn-seg' + (f.kind === 'income' ? ' active' : '') + '" data-kind="income">Ingresos</button>' +
+          '<button type="button" class="btn-seg' + (f.kind === 'expense' ? ' active' : '') + '" data-kind="expense">Gastos</button>' +
+        '</div>' +
+        '<div class="filters" style="margin:0">' +
+          '<select class="select" id="f-cat"><option value="">Categoría: todas</option>' + ALL_CATEGORIES.map(function (c) { return '<option value="' + c + '">' + esc(catLabel(c)) + '</option>'; }).join('') + '</select>' +
+          '<input class="input" type="date" id="f-from" title="Desde"><input class="input" type="date" id="f-to" title="Hasta">' +
+          '<input class="input" id="f-q" placeholder="Buscar concepto o cliente…" style="min-width:180px">' +
+        '</div>' +
+      '</div>' +
+      '<div class="card tbl-wrap" id="mov-table" style="background:rgba(2,34,22,0.7);backdrop-filter:blur(12px);border-radius:16px;border:1px solid var(--border-subtle)"></div>';
+
+    $$('#mov-segmented .btn-seg').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        $$('#mov-segmented .btn-seg').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        state.movFilters.kind = btn.dataset.kind;
+        loadMovementsTable();
+      });
     });
+    $('#f-cat').value = f.category; $('#f-from').value = f.from; $('#f-to').value = f.to; $('#f-q').value = f.q;
+    var timer;
+    function triggerFilter() {
+      state.movFilters.category = $('#f-cat').value;
+      state.movFilters.from = $('#f-from').value;
+      state.movFilters.to = $('#f-to').value;
+      state.movFilters.q = $('#f-q').value;
+      loadMovementsTable();
+    }
+    $('#f-cat').addEventListener('change', triggerFilter);
+    $('#f-from').addEventListener('change', triggerFilter);
+    $('#f-to').addEventListener('change', triggerFilter);
+    $('#f-q').addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(triggerFilter, 250); });
+    $('#new-mov').addEventListener('click', function () { movementModal({ kind: 'income' }); });
     loadMovementsTable();
   }
+
   async function loadMovementsTable() {
     var el = $('#mov-table');
-    el.innerHTML = '<div class="list-empty">Cargando…</div>';
+    el.innerHTML = '<div class="skeleton" style="height:140px;border-radius:16px;background:rgba(206,241,123,0.04)"></div>';
     var f = state.movFilters || {};
     var qs = new URLSearchParams();
     Object.keys(f).forEach(function (k) { if (f[k]) qs.set(k, f[k]); });
     try {
       var d = await api('/movements' + (qs.toString() ? '?' + qs.toString() : ''));
       var rows = d.movements || [];
-      if (!rows.length) { el.innerHTML = '<div class="list-empty">Sin movimientos.</div>'; return; }
-      el.innerHTML = '<table class="tbl"><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Descripción</th><th>Cliente</th><th class="num">Monto</th><th class="actions"></th></tr></thead><tbody>' +
+      if (!rows.length) { el.innerHTML = '<div class="list-empty">No hay movimientos con estos filtros.</div>'; return; }
+      el.innerHTML = '<table class="tbl"><thead><tr><th>Cliente / Concepto</th><th>Categoría</th><th>Fecha</th><th>Tipo</th><th class="num">Monto</th><th class="actions"></th></tr></thead><tbody>' +
         rows.map(function (m) {
-          return '<tr><td>' + esc(m.movement_date) + '</td>' +
-            '<td><span class="status ' + (m.kind === 'income' ? 'status--activo' : 'status--vencido') + '">' + (m.kind === 'income' ? 'Ingreso' : 'Gasto') + '</span></td>' +
-            '<td>' + esc(catLabel(m.category)) + '</td>' +
-            '<td class="muted">' + esc(m.description || '—') + '</td>' +
-            '<td class="muted">' + esc(m.client_name || '—') + '</td>' +
-            '<td class="num ' + (m.kind === 'income' ? 'income' : 'expense') + '">' + (m.kind === 'income' ? '+' : '−') + fmt(m.amount_cents) + '</td>' +
-            '<td class="actions"><button class="btn btn--ghost btn--xs" data-del="' + m.id + '" type="button">Eliminar</button></td></tr>';
+          var isIncome = m.kind === 'income';
+          var sign = isIncome ? '+' : '−';
+          var cls = isIncome ? 'income' : 'expense';
+          var initials = clientInitials(m.client_name || m.description);
+          return '<tr>' +
+            '<td>' +
+              '<div class="mov-main-cell" style="display:flex;align-items:center;gap:10px">' +
+                '<span class="client-avatar" style="width:32px;height:32px;font-size:11px;border-radius:8px">' + esc(initials) + '</span>' +
+                '<div>' +
+                  '<strong style="color:var(--text-primary);font-size:13.5px">' + esc(m.description || (isIncome ? 'Ingreso registrado' : 'Gasto registrado')) + '</strong>' +
+                  (m.client_name ? '<div class="small muted">' + esc(m.client_name) + '</div>' : '') +
+                '</div>' +
+              '</div>' +
+            '</td>' +
+            '<td><span class="cat-pill">' + esc(catLabel(m.category)) + '</span></td>' +
+            '<td class="mov-date">' + esc(m.movement_date) + '</td>' +
+            '<td><span class="trend-pill ' + (isIncome ? 'trend--up' : 'trend--down') + '">' + (isIncome ? 'Ingreso' : 'Gasto') + '</span></td>' +
+            '<td class="num ' + cls + '">' + sign + fmt(m.amount_cents) + '</td>' +
+            '<td class="actions"><button class="btn btn--ghost btn--xs" data-del="' + m.id + '" type="button" title="Eliminar registro">Eliminar</button></td></tr>';
         }).join('') + '</tbody></table>';
       $$('[data-del]', el).forEach(function (b) { b.addEventListener('click', function () { deleteMovement(b.dataset.del); }); });
     } catch (e) { el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; }
@@ -606,33 +692,73 @@
   async function viewClients() {
     var el = $('#view');
     el.innerHTML =
-      '<div class="section-head"><h2>Clientes</h2><button class="btn btn--sm" id="new-client">+ Nuevo cliente</button></div>' +
-      '<div class="filters"><input class="input" id="c-q" placeholder="Buscar por nombre, correo o WhatsApp…" style="min-width:280px"></div>' +
-      '<div class="card tbl-wrap" id="clients-list"></div>';
+      '<div class="page-heading">' +
+        '<div>' +
+          '<span class="eyebrow">RELACIONES &amp; CLIENTES</span>' +
+          '<h1>Conexiones que crean valor.</h1>' +
+          '<p>Directorio de aliados, servicios activos y cuentas de VENDO.</p>' +
+        '</div>' +
+        '<div class="heading-actions">' +
+          '<button class="btn btn--sm" id="new-client">+ Nuevo cliente</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="filter-bar" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">' +
+        '<div style="position:relative;flex:1;max-width:380px">' +
+          '<input class="input" id="c-q" placeholder="Buscar por nombre, correo o WhatsApp…" style="width:100%">' +
+        '</div>' +
+        '<div class="badge-mini" id="clients-count">Cargando…</div>' +
+      '</div>' +
+      '<div id="clients-list"></div>';
+
     $('#new-client').addEventListener('click', function () { clientModal(); });
     var timer;
     $('#c-q').addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(loadClients, 250); });
     loadClients();
   }
+
   async function loadClients() {
     var el = $('#clients-list');
-    el.innerHTML = '<div class="list-empty">Cargando…</div>';
+    el.innerHTML = '<div class="skeleton" style="height:200px;border-radius:16px;background:rgba(206,241,123,0.04)"></div>';
     var q = $('#c-q') ? $('#c-q').value : '';
     try {
       var d = await api('/clients' + (q ? '?q=' + encodeURIComponent(q) : ''));
       state.clients = d.clients || [];
-      if (!state.clients.length) { el.innerHTML = '<div class="list-empty">Aún no hay clientes. Crea el primero.</div>'; return; }
-      el.innerHTML = '<table class="tbl"><thead><tr><th>Cliente</th><th>Servicios</th><th>Etiqueta</th><th>Pagos</th><th class="actions"></th></tr></thead><tbody>' +
+      var cnt = $('#clients-count');
+      if (cnt) cnt.textContent = state.clients.length + ' aliados registrados';
+      if (!state.clients.length) {
+        el.innerHTML = '<div class="card" style="padding:40px;text-align:center;border-radius:16px;background:rgba(2,34,22,0.7);border:1px solid var(--border-subtle)"><p class="muted">No se encontraron clientes con este filtro.</p><button class="btn btn--sm btn--secondary" style="margin-top:10px" id="add-first-cl">+ Crear cliente</button></div>';
+        var b = $('#add-first-cl'); if (b) b.addEventListener('click', clientModal);
+        return;
+      }
+      el.innerHTML = '<div class="client-grid">' +
         state.clients.map(function (c) {
-          var svcBadges = (c.services || []).map(function (s) { return '<span class="badge badge--ghost" style="margin:2px">' + esc(svcLabel(s.service_type)) + '</span>'; }).join('') || '<span class="muted small">Sin servicios</span>';
-          var status = c.worst_status ? '<span class="dot-status" style="background:' + DOT_CLASS[c.worst_status] + '"></span>' + esc(STATUS_LABELS[c.worst_status]) : '<span class="muted small">—</span>';
-          return '<tr><td><strong>' + esc(c.full_name) + '</strong><div class="small muted">' + esc(c.email || c.whatsapp_number || '—') + '</div></td>' +
-            '<td>' + svcBadges + '</td>' +
-            '<td>' + (c.is_entrepreneur ? '<span class="badge">Emprendedor</span>' : '<span class="muted small">—</span>') + '</td>' +
-            '<td>' + status + '</td>' +
-            '<td class="actions"><button class="btn btn--sm btn--outline" data-client="' + c.id + '" type="button">Ver ficha</button></td></tr>';
-        }).join('') + '</tbody></table>';
-      $$('[data-client]', el).forEach(function (b) { b.addEventListener('click', function () { clientDetailModal(b.dataset.client); }); });
+          var initials = clientInitials(c.full_name);
+          var svcBadges = (c.services || []).map(function (s) {
+            return '<span class="cat-pill">' + esc(svcLabel(s.service_type)) + '</span>';
+          }).join('') || '<span class="muted small">Sin servicios activos</span>';
+          var status = c.worst_status ?
+            '<span class="trend-pill ' + (c.worst_status === 'al_dia' ? 'trend--up' : c.worst_status === 'vencido' ? 'trend--down' : 'trend--neutral') + '">' +
+              '<span class="dot-status" style="background:' + DOT_CLASS[c.worst_status] + ';margin-right:4px"></span>' + esc(STATUS_LABELS[c.worst_status]) +
+            '</span>' : '<span class="trend-pill trend--neutral">Activo</span>';
+          return '<article class="client-card">' +
+            '<div class="client-card__top">' +
+              '<span class="client-avatar">' + esc(initials) + '</span>' +
+              status +
+            '</div>' +
+            '<div>' +
+              '<h3>' + esc(c.full_name) + '</h3>' +
+              '<p>' + esc(c.email || c.whatsapp_number || 'Sin datos de contacto') + '</p>' +
+              '<div class="client-card__svc">' + svcBadges + '</div>' +
+            '</div>' +
+            '<footer class="client-card__foot">' +
+              '<span style="color:var(--text-muted);font-size:10px">Cuenta VENDO</span>' +
+              '<button class="link-more" data-client="' + c.id + '" type="button" style="background:none;border:0;cursor:pointer">Ver ficha →</button>' +
+            '</footer>' +
+          '</article>';
+        }).join('') + '</div>';
+      $$('[data-client]', el).forEach(function (b) {
+        b.addEventListener('click', function () { clientDetailModal(b.dataset.client); });
+      });
     } catch (e) { el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; }
   }
 
@@ -755,24 +881,74 @@
   /* ------------------------------ cobros ------------------------------ */
   async function viewCobros() {
     var el = $('#view');
-    el.innerHTML = '<div class="section-head"><h2>Cobros recurrentes</h2></div><div class="card tbl-wrap" id="cobros-table"></div>';
-    var t = $('#cobros-table');
-    t.innerHTML = '<div class="list-empty">Cargando…</div>';
+    el.innerHTML =
+      '<div class="page-heading">' +
+        '<div>' +
+          '<span class="eyebrow">COBROS &amp; FACTURACIÓN</span>' +
+          '<h1>Cada cobro, bajo control.</h1>' +
+          '<p>Gestiona tus ingresos y mantén tus cuentas al día.</p>' +
+        '</div>' +
+      '</div>' +
+      '<div id="cobros-content"><div class="skeleton" style="height:140px;border-radius:16px;background:rgba(206,241,123,0.04)"></div></div>';
+    loadCobrosView();
+  }
+
+  async function loadCobrosView() {
+    var t = $('#cobros-content');
     try {
       var d = await api('/cobros');
       var rows = d.cobros || [];
-      if (!rows.length) { t.innerHTML = '<div class="list-empty">No hay membresías. Crea un cliente con servicio mensual.</div>'; return; }
-      t.innerHTML = '<table class="tbl"><thead><tr><th>Cliente</th><th>Servicio</th><th>Próximo pago</th><th class="num">Monto</th><th>Estado</th><th class="num">Mora</th><th class="actions">Acciones</th></tr></thead><tbody>' +
-        rows.map(function (c) {
-          var wa = c.whatsapp_url ? '<a class="btn btn--sm btn--ghost" href="' + esc(c.whatsapp_url) + '" target="_blank" rel="noopener">WhatsApp</a>' : '';
-          return '<tr><td><strong>' + esc(c.client_name) + '</strong></td>' +
-            '<td>' + esc(svcLabel(c.service_type)) + '</td>' +
-            '<td>' + esc(c.next_due_date) + '</td>' +
-            '<td class="num">' + fmt(c.amount_cents) + '</td>' +
-            '<td><span class="status ' + (STATUS_CLASS[c.status] || 'status--pendiente') + '">' + esc(STATUS_LABELS[c.status] || c.status) + '</span></td>' +
-            '<td class="num">' + (c.days_overdue > 0 ? '<span style="color:var(--danger)">' + c.days_overdue + ' d</span>' : '—') + '</td>' +
-            '<td class="actions"><button class="btn btn--sm" data-cpay="' + c.client_service_id + '" data-cclient="' + c.client_id + '" data-amt="' + (c.amount_cents / 100) + '" type="button">Registrar pago</button> ' + wa + '</td></tr>';
-        }).join('') + '</tbody></table>';
+      if (!rows.length) {
+        t.innerHTML = '<div class="card" style="padding:40px;text-align:center;border-radius:16px;background:rgba(2,34,22,0.7);border:1px solid var(--border-subtle)"><p class="muted">No hay cobros recurrentes activos. Asigna un servicio mensual a un cliente para empezar.</p></div>';
+        return;
+      }
+      var totalMonthly = rows.reduce(function (sum, r) { return sum + (r.amount_cents || 0); }, 0);
+      var overdueCount = rows.filter(function (r) { return r.days_overdue > 0; }).length;
+
+      t.innerHTML =
+        '<div class="kpi-row" style="margin-bottom:18px">' +
+          '<div class="kpi">' +
+            '<div class="kpi__top"><div><span class="kpi__l">Cobros Recurrentes</span><div class="kpi__v">' + rows.length + ' <span class="kpi__cur">servicios</span></div></div><div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div></div>' +
+            '<div class="kpi__bottom"><span class="trend-pill trend--up">Activos MTD</span><span class="kpi__hint">Facturación periódica</span></div>' +
+          '</div>' +
+          '<div class="kpi">' +
+            '<div class="kpi__top"><div><span class="kpi__l">Volumen Mensual</span><div class="kpi__v" style="color:var(--primary-lime)">' + fmt(totalMonthly) + ' <span class="kpi__cur">USD</span></div></div><div class="kpi__icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div>' +
+            '<div class="kpi__bottom"><span class="trend-pill trend--neutral">MRR Proyectado</span><span class="kpi__hint">Ingresos recurrentes</span></div>' +
+          '</div>' +
+          '<div class="kpi">' +
+            '<div class="kpi__top"><div><span class="kpi__l">En Mora / Pendientes</span><div class="kpi__v" style="' + (overdueCount > 0 ? 'color:var(--status-expense)' : '') + '">' + overdueCount + ' <span class="kpi__cur">casos</span></div></div><div class="kpi__icon-box kpi__icon-box--warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div>' +
+            '<div class="kpi__bottom"><span class="trend-pill ' + (overdueCount > 0 ? 'trend--down' : 'trend--up') + '">' + (overdueCount > 0 ? 'Seguimiento requerido' : 'Al día') + '</span><span class="kpi__hint">Alertas preventivas</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="cobros-list">' +
+          rows.map(function (c) {
+            var initials = clientInitials(c.client_name);
+            var isOverdue = c.days_overdue > 0;
+            var statusPill = isOverdue ?
+              '<span class="trend-pill trend--down"><span class="dot-pulse-amber"></span>Vencido (' + c.days_overdue + 'd mora)</span>' :
+              '<span class="trend-pill ' + (c.status === 'al_dia' ? 'trend--up' : 'trend--neutral') + '">' + esc(STATUS_LABELS[c.status] || c.status) + '</span>';
+            var wa = c.whatsapp_url ? '<a class="btn btn--sm btn--outline" href="' + esc(c.whatsapp_url) + '" target="_blank" rel="noopener">WhatsApp</a>' : '';
+
+            return '<article class="cobro-card">' +
+              '<div class="cobro-card__main">' +
+                '<span class="client-avatar">' + esc(initials) + '</span>' +
+                '<div class="cobro-card__info">' +
+                  '<span class="cobro-card__title">' + esc(c.client_name) + '</span>' +
+                  '<span class="cobro-card__meta">' + esc(svcLabel(c.service_type)) + ' · Próximo cobro: ' + esc(c.next_due_date || '—') + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="cobro-card__right">' +
+                statusPill +
+                '<span class="cobro-card__amt">' + fmt(c.amount_cents) + '</span>' +
+                '<div class="cobro-card__actions">' +
+                  '<button class="btn btn--sm" data-cpay="' + c.client_service_id + '" data-cclient="' + c.client_id + '" data-amt="' + (c.amount_cents / 100) + '" type="button">Registrar pago</button>' +
+                  wa +
+                '</div>' +
+              '</div>' +
+            '</article>';
+          }).join('') +
+        '</div>';
+
       $$('[data-cpay]', t).forEach(function (b) {
         b.addEventListener('click', function () { paymentModal(b.dataset.cclient, b.dataset.cpay, b.dataset.amt); });
       });
@@ -782,31 +958,40 @@
   /* ------------------------------ ajustes ------------------------------ */
   async function viewSettings() {
     var el = $('#view');
-    el.innerHTML = '<div class="skeleton" style="height:120px"></div>';
+    el.innerHTML = '<div class="skeleton" style="height:140px;border-radius:16px;background:rgba(206,241,123,0.04)"></div>';
     var d;
     try { d = await api('/settings'); } catch (e) { el.innerHTML = '<div class="alert alert--error">' + esc(e.message) + '</div>'; return; }
     var s = d.settings || {};
     state.settings = s;
     el.innerHTML =
-      '<div class="section-head"><h2>Ajustes</h2></div>' +
-      '<div class="card" style="padding:18px;margin-bottom:16px">' +
-        '<h3 style="font-size:15px;margin:0 0 12px">Ganancias compartidas y cobros</h3>' +
+      '<div class="page-heading">' +
+        '<div>' +
+          '<span class="eyebrow">TU WORKSPACE, A TU MANERA</span>' +
+          '<h1>Los detalles hacen la diferencia.</h1>' +
+          '<p>Configura tu negocio, porcentajes compartidos y recordatorios automáticos.</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card" style="padding:24px;margin-bottom:20px;border-radius:16px;background:rgba(2,34,22,0.7);backdrop-filter:blur(12px);border:1px solid var(--border-subtle)">' +
+        '<div class="card-head-split" style="margin-bottom:16px"><div class="card-head-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><h3>Ganancias Compartidas y Cobros</h3></div><span class="badge-mini">Reglas de negocio</span></div>' +
         '<form id="set-form" class="form-grid">' +
           '<div class="form-grid cols-2">' +
             '<div class="field"><label for="st-photo">% Vendo en fotografía</label><input class="input" id="st-photo" name="photography_vendo_pct" type="number" min="0" max="100" step="0.01" value="' + esc(s.photography_vendo_pct) + '"></div>' +
             '<div class="field"><label for="st-brand">% Vendo en creación de marca</label><input class="input" id="st-brand" name="branding_vendo_pct" type="number" min="0" max="100" step="0.01" value="' + esc(s.branding_vendo_pct) + '"></div>' +
-            '<div class="field"><label for="st-warn">Días de advertencia previa</label><input class="input" id="st-warn" name="days_before_due_warning" type="number" min="0" max="60" value="' + esc(s.days_before_due_warning) + '"></div>' +
-            '<div class="field"><label for="st-susp">Días de mora para suspensión</label><input class="input" id="st-susp" name="days_overdue_to_suspend" type="number" min="0" max="120" value="' + esc(s.days_overdue_to_suspend) + '"></div>' +
+            '<div class="field"><label for="st-warn">Días de advertencia previa al vencimiento</label><input class="input" id="st-warn" name="days_before_due_warning" type="number" min="0" max="60" value="' + esc(s.days_before_due_warning) + '"></div>' +
+            '<div class="field"><label for="st-susp">Días de mora para sugerir suspensión</label><input class="input" id="st-susp" name="days_overdue_to_suspend" type="number" min="0" max="120" value="' + esc(s.days_overdue_to_suspend) + '"></div>' +
           '</div>' +
-          '<div class="field"><label for="st-wa">Plantilla WhatsApp</label><textarea class="input" id="st-wa" name="whatsapp_reminder_template" rows="4">' + esc(s.whatsapp_reminder_template) + '</textarea></div>' +
-          '<div class="field"><label for="st-subj">Asunto del correo</label><input class="input" id="st-subj" name="email_reminder_subject" value="' + esc(s.email_reminder_subject) + '"></div>' +
-          '<div class="field"><label for="st-body">Plantilla de correo</label><textarea class="input" id="st-body" name="email_reminder_template" rows="4">' + esc(s.email_reminder_template) + '</textarea></div>' +
-          '<p class="small muted">Variables: {nombre} {monto} {servicio} {fecha} {dias_mora}</p>' +
+          '<div class="field"><label for="st-wa">Plantilla de WhatsApp (recordatorios)</label><textarea class="input" id="st-wa" name="whatsapp_reminder_template" rows="4">' + esc(s.whatsapp_reminder_template) + '</textarea></div>' +
+          '<div class="field"><label for="st-subj">Asunto del correo electrónico</label><input class="input" id="st-subj" name="email_reminder_subject" value="' + esc(s.email_reminder_subject) + '"></div>' +
+          '<div class="field"><label for="st-body">Plantilla de correo electrónico</label><textarea class="input" id="st-body" name="email_reminder_template" rows="4">' + esc(s.email_reminder_template) + '</textarea></div>' +
+          '<p class="small muted">Etiquetas dinámicas admitidas: <code>{nombre}</code> <code>{monto}</code> <code>{servicio}</code> <code>{fecha}</code> <code>{dias_mora}</code></p>' +
           '<p id="set-err" class="alert alert--error hidden"></p>' +
-          '<div class="modal-actions" style="max-width:260px"><button class="btn" type="submit">Guardar ajustes</button></div>' +
+          '<div class="modal-actions" style="max-width:240px"><button class="btn" type="submit">Guardar preferencias</button></div>' +
         '</form>' +
       '</div>' +
-      '<div class="card tbl-wrap" style="padding:0"><div style="padding:16px 16px 0"><h3 style="font-size:15px;margin:0">Historial de cambios</h3></div><div id="audit-table" style="padding:0 16px 16px"></div></div>';
+      '<div class="card" style="padding:20px;border-radius:16px;background:rgba(2,34,22,0.7);backdrop-filter:blur(12px);border:1px solid var(--border-subtle)">' +
+        '<div class="card-head-split" style="margin-bottom:14px"><div class="card-head-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg><h3>Historial de Auditoría</h3></div><span class="badge-mini">Registro de eventos</span></div>' +
+        '<div id="audit-table"></div>' +
+      '</div>';
 
     $('#set-form').addEventListener('submit', async function (e) {
       e.preventDefault();
@@ -814,7 +999,7 @@
       var fd = new FormData(e.target);
       var body = {};
       fd.forEach(function (v, k) { body[k] = v; });
-      try { await api('/settings', { method: 'PUT', body: body }); toast('Ajustes guardados', 'ok'); viewSettings(); }
+      try { await api('/settings', { method: 'PUT', body: body }); toast('Preferencias guardadas exitosamente', 'ok'); viewSettings(); }
       catch (ex) { err.textContent = ex.message; err.classList.remove('hidden'); }
     });
     loadAudit();
