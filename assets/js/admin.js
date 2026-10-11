@@ -134,11 +134,11 @@
   }
 
   var gsiReady = false;
-  function initGsi() {
+  function initGsi(clientId) {
     if (gsiReady || !(window.google && window.google.accounts && window.google.accounts.id)) return;
     gsiReady = true;
     window.google.accounts.id.initialize({
-      client_id: CLIENT_ID,
+      client_id: clientId,
       callback: function (res) {
         if (res && res.credential) setToken(res.credential, decodeEmail(res.credential));
       },
@@ -148,13 +148,21 @@
     });
   }
   function loadGsi() {
-    if (window.google && window.google.accounts && window.google.accounts.id) { initGsi(); return; }
-    var s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.async = true; s.defer = true;
-    s.onload = initGsi;
-    s.onerror = function () { loginError('No se pudo cargar Google Sign-In. Revisa tu conexión.'); };
-    document.head.appendChild(s);
+    function ensureScript(clientId) {
+      if (window.google && window.google.accounts && window.google.accounts.id) { initGsi(clientId); return; }
+      var s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true; s.defer = true;
+      s.onload = function () { initGsi(clientId); };
+      s.onerror = function () { loginError('No se pudo cargar Google Sign-In. Revisa tu conexión.'); };
+      document.head.appendChild(s);
+    }
+    // El Client ID se configura una sola vez en el backend (env.GOOGLE_CLIENT_ID)
+    // para no desincronizarse del aud que valida el servidor.
+    fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) { ensureScript((cfg && cfg.google_client_id) || CLIENT_ID); })
+      .catch(function () { ensureScript(CLIENT_ID); });
   }
 
   /* -------------------------------- router -------------------------------- */

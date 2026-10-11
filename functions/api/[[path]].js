@@ -161,6 +161,10 @@ function findRoute(method, segments) {
 
 route('GET', 'health', async () => respond({ status: 'ok', timestamp: new Date().toISOString() }));
 
+route('GET', 'config', async ({ env }) =>
+  respond({ ok: true, google_client_id: env.GOOGLE_CLIENT_ID || null }),
+);
+
 route('GET', 'club/:slug', async ({ env, params }) => {
   const tenant = await tenantBySlug(env, params.slug);
   if (!tenant) return fail(404, 'Club no encontrado');

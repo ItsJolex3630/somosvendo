@@ -93,11 +93,11 @@ CREATE INDEX IF NOT EXISTS idx_pagos_referencia ON pagos (tenant_id, referencia)
 CREATE INDEX IF NOT EXISTS idx_webhooks_estado ON webhook_eventos (estado);
 CREATE INDEX IF NOT EXISTS idx_reglas_tenant ON reglas (tenant_id);
 
-INSERT OR IGNORE INTO tenants (slug, nombre, descripcion, color_primario, color_secundario, color_fondo, precio, moneda, beneficios, metodos_pago, whatsapp, instrucciones_pago, activo) VALUES ('masafacil', 'MasaFácil', 'Club de fidelización de clientes de MasaFácil', '#cef17b', '#01442c', '#01110a', 10, 'USD', '["Descuento exclusivo de miembro en cada compra","Envío gratis en pedidos seleccionados","Ofertas y combos solo para el club","Atención preferencial por WhatsApp"]', '{"pago_movil":{"banco":"","telefono":"","cedula":"","titular":""},"zelle":{"correo":"","titular":""}}', '+584149428999', 'Realiza tu pago y reporta la referencia. Un administrador verificará y activará tu membresía por 30 días.', 1);
+INSERT OR IGNORE INTO tenants (slug, nombre, descripcion, logo_url, color_primario, color_secundario, color_fondo, precio, moneda, beneficios, metodos_pago, whatsapp, instrucciones_pago, activo) VALUES ('masafacil', 'MasaFácil', 'Club de fidelización de clientes de MasaFácil', '/assets/clients/masafacil-logo.svg', '#40201a', '#c9a577', '#f5ebd4', 10, 'USD', '["Descuento exclusivo de miembro en cada compra","Envío gratis en pedidos seleccionados","Ofertas y combos solo para el club","Atención preferencial por WhatsApp"]', '{"pago_movil":{"banco":"","telefono":"","cedula":"","titular":""},"zelle":{"correo":"","titular":""}}', '+584149428999', 'Realiza tu pago y reporta la referencia. Un administrador verificará y activará tu membresía por 30 días.', 1);
 
 INSERT OR IGNORE INTO admins (email, nombre, rol) VALUES
-  ('somosvendo.ve@gmail.com', 'VENDO Superadmin', 'superadmin'),
-  ('admin@somosvendo.ve', 'Administrador VENDO', 'superadmin');
+  ('jolex3630@gmail.com', 'Jolex', 'superadmin'),
+  ('somosvendo@gmail.com', 'VENDO', 'superadmin');
 
 INSERT OR IGNORE INTO reglas (tenant_id, clave, valor, descripcion) SELECT id, 'duracion_dias', '30', 'Días de vigencia al confirmar un pago' FROM tenants WHERE slug = 'masafacil';
 INSERT OR IGNORE INTO reglas (tenant_id, clave, valor, descripcion) SELECT id, 'gracia_dias', '3', 'Días de gracia tras el vencimiento' FROM tenants WHERE slug = 'masafacil';

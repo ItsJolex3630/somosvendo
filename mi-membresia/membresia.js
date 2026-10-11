@@ -92,10 +92,11 @@ function renderCarnet(data) {
   dom.carDaysLabel.textContent = info.label;
   dom.carMessage.textContent = info.message;
 
-  const params = new URLSearchParams({ t: state.slug });
+  const params = new URLSearchParams();
   if (data.email) params.set('email', data.email);
   if (data.nombre) params.set('nombre', data.nombre);
-  dom.btnRenew.href = `../club/?${params.toString()}`;
+  const query = params.toString();
+  dom.btnRenew.href = `../club/${encodeURIComponent(state.slug)}${query ? `?${query}` : ''}`;
 
   const wa = waLink(data.tenant.whatsapp, `Hola, soy ${data.nombre || 'miembro'} del club ${data.tenant.nombre}. Necesito ayuda con mi membresía.`);
   if (wa) {
@@ -149,7 +150,7 @@ dom.btnOther.addEventListener('click', () => {
 });
 
 async function init() {
-  dom.linkJoin.href = `../club/?t=${encodeURIComponent(state.slug)}`;
+  dom.linkJoin.href = `../club/${encodeURIComponent(state.slug)}`;
   prefill();
   try {
     const data = await api(`/api/club/${encodeURIComponent(state.slug)}`);

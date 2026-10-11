@@ -83,6 +83,8 @@ img { max-width: 100%; display: block; }
 .brand__mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
   font-family: var(--font-display); font-weight: 600; font-size: 18px; color: var(--ink);
   background: var(--t-primary); flex: none; }
+.brand__mark--logo { background: none; width: auto; height: 40px; }
+.brand__mark--logo img { height: 40px; width: auto; max-width: 140px; object-fit: contain; display: block; }
 .brand__name { font-family: var(--font-display); font-weight: 600; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand__eyebrow { font-size: 11px; color: var(--t-muted); letter-spacing: 0.08em; text-transform: uppercase; }
 

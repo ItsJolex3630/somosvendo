@@ -209,11 +209,17 @@ export function applyTenantTheme(club) {
   if (meta) meta.setAttribute('content', bg);
 }
 
-export function detectTenantSlug(fallback = 'masafacil') {
+export function detectTenantSlug(fallback = '') {
   const params = new URLSearchParams(window.location.search);
   const fromQuery = params.get('t') || params.get('tenant') || params.get('club');
   const fromHash = window.location.hash ? window.location.hash.replace(/^#\/?/, '') : '';
-  const raw = (fromQuery || fromHash || '').trim().toLowerCase();
+  let fromPath = '';
+  const match = window.location.pathname.match(/\/club\/([^/]+)\/?$/i);
+  if (match) {
+    const segment = decodeURIComponent(match[1]).toLowerCase();
+    if (segment !== 'index.html' && segment !== 'checkout.html') fromPath = segment;
+  }
+  const raw = (fromQuery || fromPath || fromHash || '').trim().toLowerCase();
   const clean = raw.replace(/[^a-z0-9-]/g, '');
   return clean || fallback;
 }

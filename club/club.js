@@ -114,7 +114,14 @@ function setError(node, message) {
 function renderClub(club) {
   applyTenantTheme(club);
   dom.brandName.textContent = club.nombre || 'Club VIP';
-  dom.brandMark.textContent = (club.nombre || 'V').trim().charAt(0).toUpperCase();
+  if (club.logo_url) {
+    dom.brandMark.classList.add('brand__mark--logo');
+    dom.brandMark.textContent = '';
+    dom.brandMark.append(el('img', { src: club.logo_url, alt: club.nombre || 'Club' }));
+  } else {
+    dom.brandMark.classList.remove('brand__mark--logo');
+    dom.brandMark.textContent = (club.nombre || 'V').trim().charAt(0).toUpperCase();
+  }
   dom.clubTitle.textContent = `Club ${club.nombre || 'VIP'}`;
   dom.clubDesc.textContent = club.descripcion || 'Accede a beneficios exclusivos como miembro.';
   dom.clubBadge.textContent = '★ Membresía mensual';
@@ -228,6 +235,11 @@ function renderMethodPanel() {
 }
 
 async function loadClub() {
+  if (!state.slug) {
+    dom.loading.classList.add('hidden');
+    dom.error.classList.remove('hidden');
+    return;
+  }
   try {
     const data = await api(`/api/club/${encodeURIComponent(state.slug)}`);
     state.club = data.club;
