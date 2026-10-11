@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel VENDO | VENDO Conecta</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#01110a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="../assets/css/app.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <div class="brand">
+      <div class="brand__mark">V</div>
+      <div>
+        <div class="brand__name">Panel VENDO</div>
+        <div class="brand__eyebrow" id="admin-who">Solo administradores</div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="icon-btn" id="btn-refresh" type="button" title="Actualizar" aria-label="Actualizar" hidden>⟳</button>
+      <button class="icon-btn" id="btn-logout" type="button" title="Salir" aria-label="Cerrar sesión" hidden>⎋</button>
+    </div>
+  </div>
+</header>
+
+<main class="container" style="padding-top:20px;padding-bottom:70px;max-width:820px">
+
+  <!-- ACCESO -->
+  <section id="view-auth" class="stack" style="max-width:440px;margin:40px auto 0">
+    <div class="center">
+      <h1 style="font-size:28px">Acceso administrador</h1>
+      <p class="muted small" style="margin-top:8px">Inicia sesión con tu cuenta de Google autorizada.</p>
+    </div>
+    <div class="card card--pad-lg center">
+      <div id="gsi-btn" style="display:flex;justify-content:center"></div>
+      <div class="alert alert--info hidden" id="gsi-fallback" style="margin-top:14px;text-align:left"></div>
+      <div class="alert alert--error hidden" id="auth-error" role="alert" style="margin-top:14px;text-align:left"></div>
+    </div>
+  </section>
+
+  <!-- PANEL -->
+  <section id="view-panel" class="stack hidden">
+
+    <div class="kpis" id="kpis">
+      <div class="kpi"><div class="kpi__v" id="kpi-activos">—</div><div class="kpi__l">Miembros activos</div></div>
+      <div class="kpi"><div class="kpi__v" id="kpi-pagos-mes">—</div><div class="kpi__l">Pagos del mes</div></div>
+      <div class="kpi"><div class="kpi__v" id="kpi-mrr">—</div><div class="kpi__l">MRR proyectado</div></div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Secciones" style="max-width:340px">
+      <button class="tab is-active" data-view="pagos" role="tab" type="button">Pagos <span id="tab-pagos-count"></span></button>
+      <button class="tab" data-view="miembros" role="tab" type="button">Miembros</button>
+    </div>
+
+    <!-- PAGOS -->
+    <div id="pane-pagos" class="stack">
+      <div class="between">
+        <h2 style="font-size:19px">Cola de pagos pendientes</h2>
+        <span class="badge badge--ghost" id="pagos-count-badge">0</span>
+      </div>
+      <div id="pagos-list" class="stack"></div>
+      <div id="pagos-empty" class="card center muted hidden" style="padding:34px">
+        <div style="font-size:34px">✅</div>
+        <p style="margin-top:8px">No hay pagos pendientes por revisar.</p>
+      </div>
+    </div>
+
+    <!-- MIEMBROS -->
+    <div id="pane-miembros" class="stack hidden">
+      <div class="field">
+        <input class="input" id="member-search" type="search" placeholder="Buscar por nombre, correo o teléfono…" autocomplete="off">
+      </div>
+      <div class="wrap-flex" id="member-filters">
+        <button class="chip is-active" data-estado="" type="button">Todos</button>
+        <button class="chip" data-estado="activo" type="button">Activos</button>
+        <button class="chip" data-estado="gracia" type="button">En gracia</button>
+        <button class="chip" data-estado="vencido" type="button">Vencidos</button>
+        <button class="chip" data-estado="pendiente" type="button">Pendientes</button>
+      </div>
+      <div id="miembros-list" class="stack"></div>
+      <div id="miembros-empty" class="card center muted hidden" style="padding:34px">Sin miembros que coincidan.</div>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL RECHAZO -->
+<div class="modal" id="modal-reject" aria-hidden="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="reject-title">
+    <h3 id="reject-title" style="font-size:20px">Rechazar pago</h3>
+    <p class="small muted" style="margin:6px 0 16px" id="reject-sub"></p>
+    <div class="wrap-flex" id="reject-reasons" style="margin-bottom:14px"></div>
+    <div class="field" style="margin-bottom:16px">
+      <label for="reject-motive">Motivo</label>
+      <textarea class="input" id="reject-motive" rows="3" placeholder="Describe el motivo del rechazo…"></textarea>
+    </div>
+    <div class="stack">
+      <button class="btn btn--danger btn--block" id="btn-reject-confirm" type="button">Confirmar rechazo</button>
+      <button class="btn btn--ghost btn--block" type="button" data-close>Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACION + WHATSAPP -->
+<div class="modal" id="modal-success" aria-hidden="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="success-title">
+    <div class="center">
+      <div style="font-size:44px">✅</div>
+      <h3 id="success-title" style="font-size:20px;margin-top:6px">Membresía activada</h3>
+      <p class="small muted" id="success-sub" style="margin-top:6px"></p>
+    </div>
+    <div class="field" style="margin-top:16px">
+      <label>Mensaje de bienvenida (WhatsApp)</label>
+      <textarea class="input" id="success-msg" rows="5"></textarea>
+    </div>
+    <div class="stack" style="margin-top:14px">
+      <a class="btn btn--ok btn--block" id="btn-success-wa" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+      <button class="btn btn--ghost btn--block" id="btn-success-copy" type="button">Copiar mensaje</button>
+      <button class="btn btn--ghost btn--block" type="button" data-close>Seguir revisando</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./admin.js"></script>
+</body>
+</html>

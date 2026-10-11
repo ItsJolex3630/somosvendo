@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Únete al Club VIP | VENDO Conecta</title>
+<meta name="description" content="Hazte miembro del club y disfruta beneficios exclusivos en tu comercio favorito.">
+<meta name="theme-color" content="#01110a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <div class="brand">
+      <div class="brand__mark" id="brand-mark">V</div>
+      <div>
+        <div class="brand__name" id="brand-name">Cargando club…</div>
+        <div class="brand__eyebrow">VENDO Conecta</div>
+      </div>
+    </div>
+    <span class="badge" id="vip-badge">&#9733; Club VIP</span>
+  </div>
+</header>
+
+<main class="container narrow" style="padding-top:22px;padding-bottom:60px">
+
+  <section id="state-loading" class="stack" aria-busy="true" aria-live="polite">
+    <div class="skeleton" style="height:150px"></div>
+    <div class="skeleton" style="height:64px"></div>
+    <div class="skeleton" style="height:180px"></div>
+  </section>
+
+  <section id="state-error" class="stack hidden">
+    <div class="card card--pad-lg center stack">
+      <div style="font-size:40px">🔍</div>
+      <h2>No encontramos este club</h2>
+      <p class="muted">El enlace puede estar incompleto o el club no está disponible por ahora.</p>
+      <a class="btn" href="../index.html">Volver a VENDO</a>
+    </div>
+  </section>
+
+  <section id="app" class="stack hidden">
+
+    <div id="club-hero" class="stack">
+      <div>
+        <span class="badge" id="club-badge">Membresía mensual</span>
+        <h1 id="club-title" style="font-size:clamp(30px,8vw,44px);margin-top:12px;color:var(--t-ink)">Club</h1>
+        <p class="muted" id="club-desc" style="margin-top:10px"></p>
+      </div>
+
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+        <div>
+          <div class="small muted">Mensualidad</div>
+          <div style="font-family:var(--font-display);font-size:34px;color:var(--t-primary)" id="club-price">—</div>
+          <div class="small muted" id="club-price-note">Cancelas mes a mes, sin contratos.</div>
+        </div>
+        <div style="text-align:right">
+          <div class="badge badge--solid">Sin permanencia</div>
+        </div>
+      </div>
+
+      <div class="card alert--info" id="savings-hook" style="display:none">
+        <strong>💡 Tu gancho de valor</strong><br>
+        <span id="savings-text" class="small"></span>
+      </div>
+
+      <div class="stack" id="benefits"></div>
+    </div>
+
+    <div class="card" id="club-instructions" style="display:none">
+      <div class="small muted" style="margin-bottom:6px">¿Cómo funciona?</div>
+      <p id="instructions-text" style="font-size:14.5px"></p>
+    </div>
+
+    <div class="card card--pad-lg">
+      <nav class="steps" aria-label="Progreso de inscripción" style="margin-bottom:22px">
+        <div class="step" data-step="1" data-state="active"><div class="dot">1</div><div class="label">Datos</div></div>
+        <div class="bar"></div>
+        <div class="step" data-step="2" data-state=""><div class="dot">2</div><div class="label">Pago</div></div>
+        <div class="bar"></div>
+        <div class="step" data-step="3" data-state=""><div class="dot">3</div><div class="label">Listo</div></div>
+      </nav>
+
+      <!-- PASO 1 -->
+      <div id="step-1" class="stack">
+        <div>
+          <h2 style="font-size:22px">Crea tu cuenta de miembro</h2>
+          <p class="small muted">Solo necesitamos unos datos para activar tus beneficios.</p>
+        </div>
+        <form id="form-checkout" class="stack" novalidate>
+          <div class="field">
+            <label for="in-nombre">Nombre completo</label>
+            <input class="input" id="in-nombre" name="nombre" autocomplete="name" placeholder="Ej: María Rodríguez" required>
+          </div>
+          <div class="field">
+            <label for="in-email">Correo electrónico</label>
+            <input class="input" id="in-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="tucorreo@email.com" required>
+          </div>
+          <div class="field">
+            <label for="in-telefono">WhatsApp</label>
+            <input class="input" id="in-telefono" name="telefono" type="tel" autocomplete="tel" inputmode="tel" placeholder="0414 123 4567" required>
+            <span class="hint">Usaremos los últimos 4 dígitos para darte acceso a tu carnet.</span>
+          </div>
+          <div class="alert alert--error hidden" id="checkout-error" role="alert"></div>
+          <button class="btn btn--block" id="btn-checkout" type="submit">Continuar al pago</button>
+          <p class="small muted center">Al continuar aceptas los términos del club.</p>
+        </form>
+      </div>
+
+      <!-- PASO 2 -->
+      <div id="step-2" class="stack hidden">
+        <div>
+          <h2 style="font-size:22px">Reporta tu pago</h2>
+          <p class="small muted">Transfiere el monto y luego reporta la referencia aquí.</p>
+        </div>
+
+        <div class="between">
+          <span class="small muted">Total a transferir</span>
+          <span class="mono" style="font-weight:700;color:var(--t-primary)" id="pay-amount">—</span>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Método de pago" id="method-tabs"></div>
+        <div id="method-panel" class="stack"></div>
+
+        <hr class="divider">
+        <form id="form-reportar" class="stack" novalidate>
+          <div class="field">
+            <label for="in-referencia">Número de referencia</label>
+            <input class="input" id="in-referencia" name="referencia" placeholder="Ej: 008421 o el ID de Zelle" required>
+            <span class="hint">Aparece en tu comprobante o app bancaria.</span>
+          </div>
+          <div class="alert alert--error hidden" id="report-error" role="alert"></div>
+          <button class="btn btn--block" id="btn-reportar" type="submit">Reportar pago</button>
+          <button class="btn btn--ghost btn--block" id="btn-back-1" type="button">Volver</button>
+        </form>
+      </div>
+
+      <!-- PASO 3 -->
+      <div id="step-3" class="stack hidden center">
+        <div style="font-size:52px">🎉</div>
+        <h2 style="font-size:26px">¡Pago reportado con éxito!</h2>
+        <p class="muted" id="success-detail">Nuestro equipo validará tu pago en breve. Recibirás confirmación por WhatsApp y podrás ver tu carnet digital en Mi Membresía.</p>
+        <div class="card" id="success-summary" style="text-align:left;display:none"></div>
+        <a class="btn btn--block" id="btn-goto-carnet" href="#">Ver mi carnet digital</a>
+        <a class="btn btn--ghost btn--block hidden" id="btn-wa-club" target="_blank" rel="noopener">Hablar con el club</a>
+      </div>
+    </div>
+
+    <p class="small muted center">Powered by <strong style="color:var(--t-primary)">VENDO Conecta</strong></p>
+  </section>
+</main>
+
+<script type="module" src="./club.js"></script>
+</body>
+</html>

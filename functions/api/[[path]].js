@@ -300,8 +300,8 @@ route('POST', 'membresia/estado', async ({ request, env }) => {
 
   const row = await queryOne(
     env,
-    `SELECT m.id, m.estado, m.fecha_inicio, m.fecha_fin, m.telefono,
-            t.nombre AS tenant_nombre, t.logo_url AS tenant_logo
+    `SELECT m.id, m.nombre, m.email, m.estado, m.fecha_inicio, m.fecha_fin, m.telefono,
+            t.nombre AS tenant_nombre, t.logo_url AS tenant_logo, t.whatsapp AS tenant_whatsapp
        FROM miembros m
        JOIN tenants t ON t.id = m.tenant_id
       WHERE t.slug = ? AND t.activo = 1 AND m.email = ?
@@ -316,11 +316,13 @@ route('POST', 'membresia/estado', async ({ request, env }) => {
 
   return respond({
     ok: true,
+    nombre: row.nombre,
+    email: row.email,
     estado: row.estado,
     fecha_inicio: row.fecha_inicio,
     fecha_fin: row.fecha_fin,
     dias_restantes: Math.max(0, daysUntil(row.fecha_fin)),
-    tenant: { nombre: row.tenant_nombre, logo_url: row.tenant_logo },
+    tenant: { nombre: row.tenant_nombre, logo_url: row.tenant_logo, whatsapp: row.tenant_whatsapp },
   });
 });
 
@@ -351,6 +353,77 @@ route('GET', 'admin/pagos', async ({ request, env }) => {
   );
 
   return respond({ ok: true, total: pagos.length, pagos });
+});
+
+route('GET', 'admin/miembros', async ({ request, env }) => {
+  const auth = await requireAdmin(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const url = new URL(request.url);
+  const term = str(url.searchParams.get('q') || '', 80);
+  const estado = slug(url.searchParams.get('estado') || '', 20);
+  const estados = ['activo', 'gracia', 'vencido', 'pendiente', 'rechazado'];
+
+  const where = [];
+  const args = [];
+  if (estado && estados.includes(estado)) {
+    where.push('m.estado = ?');
+    args.push(estado);
+  }
+  if (term) {
+    where.push('(m.nombre LIKE ? OR m.email LIKE ? OR m.telefono LIKE ?)');
+    const like = `%${term.replace(/[%_]/g, '')}%`;
+    args.push(like, like, like);
+  }
+
+  const miembros = await query(
+    env,
+    `SELECT m.id, m.nombre, m.email, m.telefono, m.estado, m.fecha_inicio, m.fecha_fin,
+            m.created_at,
+            t.id AS tenant_id, t.slug AS tenant_slug, t.nombre AS tenant_nombre, t.whatsapp AS tenant_whatsapp
+       FROM miembros m
+       JOIN tenants t ON t.id = m.tenant_id
+       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      ORDER BY m.updated_at DESC, m.id DESC
+      LIMIT 300`,
+    args,
+  );
+
+  return respond({ ok: true, total: miembros.length, miembros });
+});
+
+route('GET', 'admin/metricas', async ({ request, env }) => {
+  const auth = await requireAdmin(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const counts = await queryOne(
+    env,
+    `SELECT
+        (SELECT COUNT(*) FROM miembros WHERE estado = 'activo') AS miembros_activos,
+        (SELECT COUNT(*) FROM miembros) AS miembros_total,
+        (SELECT COUNT(*) FROM pagos WHERE estado = 'pendiente') AS pagos_pendientes,
+        (SELECT COUNT(*) FROM pagos WHERE estado = 'confirmado'
+           AND strftime('%Y-%m', ifnull(revisado_at, created_at)) = strftime('%Y-%m', 'now')) AS pagos_mes`,
+  );
+  const mrr = await queryOne(
+    env,
+    `SELECT COALESCE(SUM(t.precio), 0) AS mrr
+       FROM miembros m
+       JOIN tenants t ON t.id = m.tenant_id
+      WHERE m.estado = 'activo'`,
+  );
+
+  return respond({
+    ok: true,
+    metricas: {
+      miembros_activos: num(counts && counts.miembros_activos, 0),
+      miembros_total: num(counts && counts.miembros_total, 0),
+      pagos_pendientes: num(counts && counts.pagos_pendientes, 0),
+      pagos_mes: num(counts && counts.pagos_mes, 0),
+      mrr: num(mrr && mrr.mrr, 0),
+      moneda: DEFAULT_PRICE_CURRENCY,
+    },
+  });
 });
 
 route('POST', 'admin/pagos/:id/confirmar', async ({ request, env, params }) => {

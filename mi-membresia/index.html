@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Membresía | VENDO Conecta</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#01110a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <div class="brand">
+      <div class="brand__mark" id="brand-mark">V</div>
+      <div>
+        <div class="brand__name" id="brand-name">Mi Membresía</div>
+        <div class="brand__eyebrow">VENDO Conecta</div>
+      </div>
+    </div>
+    <button class="icon-btn hidden" id="btn-logout" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">⎋</button>
+  </div>
+</header>
+
+<main class="container narrow" style="padding-top:26px;padding-bottom:60px">
+
+  <!-- ACCESO -->
+  <section id="view-login" class="stack">
+    <div>
+      <h1 style="font-size:clamp(28px,7vw,38px)">Tu carnet digital</h1>
+      <p class="muted" style="margin-top:8px">Ingresa sin contraseña con tu correo y los últimos 4 dígitos de tu WhatsApp.</p>
+    </div>
+    <div class="card card--pad-lg">
+      <form id="form-login" class="stack" novalidate>
+        <div class="field">
+          <label for="in-email">Correo electrónico</label>
+          <input class="input" id="in-email" type="email" inputmode="email" autocomplete="email" placeholder="tucorreo@email.com" required>
+        </div>
+        <div class="field">
+          <label for="in-last4">Últimos 4 dígitos del WhatsApp</label>
+          <input class="input" id="in-last4" inputmode="numeric" maxlength="4" pattern="[0-9]*" placeholder="••••" required>
+        </div>
+        <div class="alert alert--error hidden" id="login-error" role="alert"></div>
+        <button class="btn btn--block" id="btn-login" type="submit">Ver mi membresía</button>
+        <p class="small muted center">¿Aún no eres miembro? <a id="link-join" href="#">Únete al club</a></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- CARNET -->
+  <section id="view-carnet" class="stack hidden">
+    <div class="carnet" id="carnet">
+      <div class="carnet__top">
+        <div>
+          <div class="carnet__type">Miembro VIP</div>
+          <div class="carnet__club" id="car-club">Club</div>
+        </div>
+        <div class="carnet__chip" aria-hidden="true"></div>
+      </div>
+      <div>
+        <div class="carnet__label">Titular</div>
+        <div class="carnet__name" id="car-name">—</div>
+      </div>
+      <div class="carnet__bottom">
+        <div>
+          <div class="carnet__label">Miembro desde</div>
+          <div class="carnet__value" id="car-since">—</div>
+        </div>
+        <div style="text-align:right">
+          <div class="carnet__label">Vence</div>
+          <div class="carnet__value" id="car-until">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card--pad-lg stack">
+      <div class="between">
+        <span class="small muted">Estado</span>
+        <span id="car-status" class="status status--pendiente">—</span>
+      </div>
+      <div class="center">
+        <div style="font-family:var(--font-display);font-size:44px;line-height:1;color:var(--t-primary)" id="car-days">—</div>
+        <div class="small muted" id="car-days-label">días de beneficios</div>
+      </div>
+      <p class="small" id="car-message" style="text-align:center"></p>
+      <a class="btn btn--block" id="btn-renew" href="#">Renovar membresía</a>
+      <a class="btn btn--ghost btn--block hidden" id="btn-contact" target="_blank" rel="noopener">Contactar al club por WhatsApp</a>
+      <button class="btn btn--ghost btn--block" id="btn-other" type="button">Consultar otra membresía</button>
+    </div>
+
+    <p class="small muted center">Powered by <strong style="color:var(--t-primary)">VENDO Conecta</strong></p>
+  </section>
+</main>
+
+<script type="module" src="./membresia.js"></script>
+</body>
+</html>
