@@ -1,6 +1,0 @@
-# Copia a .dev.vars para `wrangler pages dev` (NO commitear).
-DATABASE_URL="libsql://vendo-club-<org>.aws-us-east-1.turso.io"
-DATABASE_AUTH_TOKEN="tu-turso-auth-token"
-CRON_SECRET="cambia-este-secreto"
-GOOGLE_CLIENT_ID="39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com"
-NEXT_PUBLIC_GOOGLE_CLIENT_ID="39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com"

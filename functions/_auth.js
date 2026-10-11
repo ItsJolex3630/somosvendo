@@ -126,3 +126,47 @@ export async function requireRole(request, env, roles = []) {
   }
   return result;
 }
+
+/**
+ * Administrador del panel financiero (tabla `users` del panel).
+ * Valida el ID token de Google y comprueba que el correo esté autorizado.
+ */
+export async function requirePanelAdmin(request, env) {
+  const token = bearerToken(request);
+  if (!token) return { ok: false, status: 401, error: 'Falta el encabezado Authorization' };
+
+  let payload;
+  try {
+    payload = await verifyGoogleIdToken(env, token);
+  } catch (err) {
+    return { ok: false, status: 401, error: err && err.message ? err.message : 'Token inválido' };
+  }
+
+  const email = String(payload.email).toLowerCase();
+  let admin = null;
+
+  try {
+    admin = await queryOne(
+      env,
+      'SELECT id, email, display_name FROM users WHERE email = ? LIMIT 1',
+      [email],
+    );
+  } catch {
+    admin = null;
+  }
+
+  if (!admin) {
+    try {
+      admin = await queryOne(
+        env,
+        'SELECT id, email, nombre AS display_name FROM admins WHERE email = ? AND activo = 1 LIMIT 1',
+        [email],
+      );
+    } catch {
+      admin = null;
+    }
+  }
+
+  if (!admin) return { ok: false, status: 403, error: 'Esta cuenta no tiene acceso al panel' };
+  return { ok: true, admin, identity: payload };
+}

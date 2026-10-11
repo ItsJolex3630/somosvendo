@@ -12,7 +12,7 @@ import {
   str,
   transaction,
 } from '../_db.js';
-import { requireAdmin } from '../_auth.js';
+import { requireAdmin, requirePanelAdmin } from '../_auth.js';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -584,6 +584,702 @@ route('POST', 'admin/cron/diario', async ({ request, env }) => {
     procesados: { a_gracia: aGracia.length, a_vencido: aVencido.length },
     eventos_encolados: eventos.length,
   });
+});
+
+/* ========================================================================== */
+/*  CRM del panel Vendo — /api/admin/crm/*                                     */
+/*  Tablas: clients, client_services, memberships, movements, settings,        */
+/*          audit_log. Dinero siempre en centavos (INTEGER).                    */
+/* ========================================================================== */
+
+const CRM_SERVICE_TO_CATEGORY = {
+  web_dev: 'web_sale',
+  hosting: 'hosting_monthly',
+  vendo_conecta: 'vendo_conecta_monthly',
+  nfc_cards: 'web_sale',
+  feature_implementation: 'feature_implementation',
+  photography: 'photography',
+  branding: 'branding',
+};
+const CRM_SHARED_CATEGORIES = ['photography', 'branding'];
+const CRM_INCOME_CATEGORIES = [
+  'web_sale',
+  'hosting_monthly',
+  'vendo_conecta_monthly',
+  'feature_implementation',
+  'photography',
+  'branding',
+  'subscription',
+];
+const CRM_EXPENSE_CATEGORIES = ['nfc_reinvestment', 'unexpected', 'savings', 'partner_payout'];
+const CRM_MEMBERSHIP_RANK = { al_dia: 1, proximo_a_vencer: 2, vencido: 3, suspendido: 4 };
+
+function crmId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID().replace(/-/g, '').slice(0, 21);
+  }
+  return `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`.slice(0, 21);
+}
+function crmToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+function crmIsoDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+function crmAddMonths(iso, months) {
+  const d = new Date(`${String(iso).slice(0, 10)}T00:00:00Z`);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
+  return crmIsoDate(d);
+}
+function crmNextDue(billingDay, from = new Date()) {
+  const day = Math.min(Math.max(Number(billingDay) || 1, 1), 28);
+  let year = from.getUTCFullYear();
+  let month = from.getUTCMonth();
+  if (from.getUTCDate() > day) {
+    month += 1;
+    if (month > 11) {
+      month = 0;
+      year += 1;
+    }
+  }
+  return crmIsoDate(new Date(Date.UTC(year, month, day)));
+}
+function crmDaysOverdue(nextDue) {
+  if (!nextDue) return 0;
+  const a = Date.parse(`${String(nextDue).slice(0, 10)}T00:00:00Z`);
+  const b = Date.parse(`${crmToday()}T00:00:00Z`);
+  const diff = Math.round((b - a) / 86_400_000);
+  return diff > 0 ? diff : 0;
+}
+function crmDaysUntil(nextDue) {
+  if (!nextDue) return 0;
+  const a = Date.parse(`${crmToday()}T00:00:00Z`);
+  const b = Date.parse(`${String(nextDue).slice(0, 10)}T00:00:00Z`);
+  return Math.round((b - a) / 86_400_000);
+}
+function crmUsdToCents(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(String(value).replace(/[^0-9.,-]/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? Math.round(n * 100) : null;
+}
+function crmPartnerCents(totalCents, pct) {
+  return Math.round((totalCents * (100 - pct)) / 100);
+}
+function crmRoundPct(value) {
+  return Math.round(Number(value) * 100) / 100;
+}
+function crmFormatUsd(cents) {
+  return `$${(Number(cents || 0) / 100).toFixed(2)}`;
+}
+function crmFill(template, vars) {
+  return String(template || '')
+    .replaceAll('{nombre}', vars.nombre || '')
+    .replaceAll('{monto}', vars.monto || '')
+    .replaceAll('{servicio}', vars.servicio || '')
+    .replaceAll('{fecha}', vars.fecha || '')
+    .replaceAll('{dias_mora}', String(vars.dias_mora ?? 0));
+}
+function crmWaUrl(number, text) {
+  const digitsOnly = String(number || '').replace(/\D/g, '');
+  if (!digitsOnly) return '';
+  return `https://wa.me/${digitsOnly}?text=${encodeURIComponent(text)}`;
+}
+function crmAuditStmt(userId, table, recordId, action, oldValues, newValues) {
+  return {
+    sql: 'INSERT INTO audit_log (id, user_id, table_name, record_id, action, old_values, new_values) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    args: [
+      crmId(),
+      userId,
+      table,
+      recordId,
+      action,
+      oldValues ? JSON.stringify(oldValues) : null,
+      newValues ? JSON.stringify(newValues) : null,
+    ],
+  };
+}
+function crmMonthKeys(from, to) {
+  const keys = [];
+  let y = Number(from.slice(0, 4));
+  let m = Number(from.slice(5, 7));
+  const endY = Number(to.slice(0, 4));
+  const endM = Number(to.slice(5, 7));
+  while (y < endY || (y === endY && m <= endM)) {
+    keys.push(`${y}-${String(m).padStart(2, '0')}`);
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+  return keys;
+}
+function crmMonthStart(offsetMonths = 0) {
+  const now = new Date();
+  return crmIsoDate(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offsetMonths, 1)));
+}
+function crmMonthEnd(offsetMonths = 0) {
+  const now = new Date();
+  return crmIsoDate(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offsetMonths + 1, 0)));
+}
+function crmResolveRange(url) {
+  const range = url.searchParams.get('range') || 'this_month';
+  const fromParam = url.searchParams.get('from');
+  const toParam = url.searchParams.get('to');
+  if (range === 'custom' && fromParam && toParam) return { from: fromParam, to: toParam };
+  if (range === 'last_6') return { from: crmMonthStart(-5), to: crmMonthEnd(0) };
+  if (range === 'last_12') return { from: crmMonthStart(-11), to: crmMonthEnd(0) };
+  return { from: crmMonthStart(0), to: crmMonthEnd(0) };
+}
+
+async function crmAuth(request, env) {
+  return requirePanelAdmin(request, env);
+}
+
+route('GET', 'admin/crm/summary', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const { from, to } = crmResolveRange(new URL(request.url));
+
+  const totals = await query(
+    env,
+    'SELECT kind, COALESCE(SUM(amount_cents), 0) AS total FROM movements WHERE movement_date >= ? AND movement_date <= ? GROUP BY kind',
+    [from, to],
+  );
+  let incomeCents = 0;
+  let expenseCents = 0;
+  for (const row of totals) {
+    const total = num(row.total, 0);
+    if (row.kind === 'income') incomeCents += total;
+    else expenseCents += total;
+  }
+
+  const seriesRows = await query(
+    env,
+    'SELECT substr(movement_date, 1, 7) AS month, kind, COALESCE(SUM(amount_cents), 0) AS total FROM movements WHERE movement_date >= ? AND movement_date <= ? GROUP BY substr(movement_date, 1, 7), kind',
+    [from, to],
+  );
+  const seriesMap = new Map();
+  for (const key of crmMonthKeys(from, to)) {
+    seriesMap.set(key, { month: key, income_cents: 0, expense_cents: 0, net_cents: 0 });
+  }
+  for (const row of seriesRows) {
+    const point = seriesMap.get(row.month);
+    if (!point) continue;
+    const total = num(row.total, 0);
+    if (row.kind === 'income') point.income_cents += total;
+    else point.expense_cents += total;
+    point.net_cents = point.income_cents - point.expense_cents;
+  }
+
+  const incomeByCategory = await query(
+    env,
+    'SELECT category, COALESCE(SUM(amount_cents), 0) AS total FROM movements WHERE kind = ? AND movement_date >= ? AND movement_date <= ? GROUP BY category ORDER BY total DESC',
+    ['income', from, to],
+  );
+  const expenseByCategory = await query(
+    env,
+    'SELECT category, COALESCE(SUM(amount_cents), 0) AS total FROM movements WHERE kind = ? AND movement_date >= ? AND movement_date <= ? GROUP BY category ORDER BY total DESC',
+    ['expense', from, to],
+  );
+
+  return respond({
+    ok: true,
+    range: { from, to },
+    summary: {
+      income_cents: incomeCents,
+      expense_cents: expenseCents,
+      net_cents: incomeCents - expenseCents,
+    },
+    series: Array.from(seriesMap.values()),
+    income_by_category: incomeByCategory.map((r) => ({ category: r.category, total_cents: num(r.total, 0) })),
+    expense_by_category: expenseByCategory.map((r) => ({ category: r.category, total_cents: num(r.total, 0) })),
+  });
+});
+
+route('GET', 'admin/crm/movements', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const url = new URL(request.url);
+  const conditions = [];
+  const args = [];
+  const kind = url.searchParams.get('kind');
+  const category = url.searchParams.get('category');
+  const from = url.searchParams.get('from');
+  const to = url.searchParams.get('to');
+  const clientId = url.searchParams.get('client_id');
+  const q = url.searchParams.get('q');
+
+  if (kind === 'income' || kind === 'expense') {
+    conditions.push('m.kind = ?');
+    args.push(kind);
+  }
+  if (category) {
+    conditions.push('m.category = ?');
+    args.push(category);
+  }
+  if (from) {
+    conditions.push('m.movement_date >= ?');
+    args.push(from);
+  }
+  if (to) {
+    conditions.push('m.movement_date <= ?');
+    args.push(to);
+  }
+  if (clientId) {
+    conditions.push('m.client_id = ?');
+    args.push(clientId);
+  }
+  if (q) {
+    conditions.push('m.description LIKE ?');
+    args.push(`%${str(q, 80).replace(/[%_]/g, '')}%`);
+  }
+
+  const rows = await query(
+    env,
+    `SELECT m.id, m.kind, m.category, m.amount_cents, m.description, m.movement_date,
+            m.client_id, m.is_shared_profit, m.vendo_share_pct, m.linked_movement_id,
+            m.created_at, c.full_name AS client_name
+       FROM movements m
+       LEFT JOIN clients c ON c.id = m.client_id
+       ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}
+      ORDER BY m.movement_date DESC, m.created_at DESC
+      LIMIT 500`,
+    args,
+  );
+
+  return respond({ ok: true, movements: rows });
+});
+
+route('POST', 'admin/crm/movements', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const body = await readJson(request);
+  const kind = str(body.kind, 10) === 'expense' ? 'expense' : 'income';
+  const category = str(body.category, 40);
+  const amountCents = crmUsdToCents(body.amount_usd);
+  const movementDate = str(body.date, 10) || crmToday();
+  const description = str(body.description, 300) || null;
+  const clientId = str(body.client_id, 40) || null;
+
+  const allowed = kind === 'income' ? CRM_INCOME_CATEGORIES : CRM_EXPENSE_CATEGORIES;
+  if (!allowed.includes(category)) return fail(400, 'Categoría inválida para el tipo de movimiento');
+  if (!amountCents || amountCents <= 0) return fail(400, 'El monto debe ser mayor a cero');
+
+  const shared = kind === 'income' && CRM_SHARED_CATEGORIES.includes(category);
+  const vendoPct = shared ? crmRoundPct(num(body.vendo_share_pct, 50)) : null;
+  if (shared && (vendoPct < 0 || vendoPct > 100)) return fail(400, 'Porcentaje inválido');
+
+  const movementId = crmId();
+  const statements = [
+    {
+      sql: `INSERT INTO movements (id, kind, category, amount_cents, description, movement_date, client_id, is_shared_profit, vendo_share_pct, created_by, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+      args: [movementId, kind, category, amountCents, description, movementDate, clientId, shared ? 1 : 0, vendoPct, auth.admin.id],
+    },
+    crmAuditStmt(auth.admin.id, 'movements', movementId, 'create', null, {
+      kind,
+      category,
+      amount_cents: amountCents,
+      movement_date: movementDate,
+    }),
+  ];
+
+  if (shared) {
+    const partnerId = crmId();
+    const partnerCents = crmPartnerCents(amountCents, vendoPct);
+    statements.push({
+      sql: `INSERT INTO movements (id, kind, category, amount_cents, description, movement_date, client_id, is_shared_profit, linked_movement_id, created_by, updated_at)
+            VALUES (?, 'expense', 'partner_payout', ?, ?, ?, ?, 0, ?, ?, datetime('now'))`,
+      args: [partnerId, partnerCents, `Pago a socio — ${category}`, movementDate, clientId, movementId, auth.admin.id],
+    });
+    statements.push(
+      crmAuditStmt(auth.admin.id, 'movements', partnerId, 'create', null, {
+        kind: 'expense',
+        category: 'partner_payout',
+        amount_cents: partnerCents,
+        linked_movement_id: movementId,
+      }),
+    );
+  }
+
+  await transaction(env, statements);
+  return respond({ ok: true, movement_id: movementId });
+});
+
+route('DELETE', 'admin/crm/movements/:id', async ({ request, env, params }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const id = str(params.id, 40);
+  const existing = await queryOne(env, 'SELECT * FROM movements WHERE id = ? LIMIT 1', [id]);
+  if (!existing) return fail(404, 'Movimiento no encontrado');
+
+  await transaction(env, [
+    { sql: 'DELETE FROM movements WHERE linked_movement_id = ?', args: [id] },
+    { sql: 'DELETE FROM movements WHERE id = ?', args: [id] },
+    crmAuditStmt(auth.admin.id, 'movements', id, 'delete', existing, null),
+  ]);
+  return respond({ ok: true });
+});
+
+route('GET', 'admin/crm/clients', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const url = new URL(request.url);
+  const q = str(url.searchParams.get('q') || '', 80);
+  const args = [];
+  let where = '';
+  if (q) {
+    where = 'WHERE c.full_name LIKE ? OR c.email LIKE ? OR c.whatsapp_number LIKE ?';
+    const like = `%${q.replace(/[%_]/g, '')}%`;
+    args.push(like, like, like);
+  }
+
+  const clients = await query(
+    env,
+    `SELECT c.id, c.full_name, c.email, c.whatsapp_number, c.notes, c.is_active, c.created_at
+       FROM clients c ${where} ORDER BY c.created_at DESC LIMIT 300`,
+    args,
+  );
+  const services = await query(
+    env,
+    `SELECT cs.id, cs.client_id, cs.service_type, cs.payment_kind, cs.amount_cents, cs.status, cs.start_date,
+            m.id AS membership_id, m.next_due_date, m.billing_day, m.last_payment_date, m.status AS membership_status
+       FROM client_services cs
+       LEFT JOIN memberships m ON m.client_service_id = cs.id
+      ORDER BY cs.start_date`,
+  );
+
+  const byClient = new Map();
+  for (const svc of services) {
+    const list = byClient.get(svc.client_id) || [];
+    list.push(svc);
+    byClient.set(svc.client_id, list);
+  }
+
+  const result = clients.map((client) => {
+    const list = byClient.get(client.id) || [];
+    const recurringActive = list.filter((s) => s.payment_kind === 'recurring' && s.status === 'active');
+    const statuses = recurringActive.map((s) => s.membership_status).filter(Boolean);
+    const worst = statuses.length
+      ? statuses.reduce((a, b) => (CRM_MEMBERSHIP_RANK[b] > CRM_MEMBERSHIP_RANK[a] ? b : a))
+      : null;
+    return {
+      ...client,
+      services: list,
+      is_entrepreneur: recurringActive.length > 0,
+      worst_status: worst,
+    };
+  });
+
+  return respond({ ok: true, clients: result });
+});
+
+route('POST', 'admin/crm/clients', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const body = await readJson(request);
+  const fullName = str(body.full_name, 120);
+  if (!fullName) return fail(400, 'El nombre es obligatorio');
+  const emailValue = str(body.email, 160) || null;
+  const whatsapp = digits(body.whatsapp_number, 20) || null;
+  const notes = str(body.notes, 500) || null;
+  if (whatsapp && !/^[0-9]{8,15}$/.test(whatsapp)) {
+    return fail(400, 'El WhatsApp debe tener solo dígitos con código de país');
+  }
+
+  const id = crmId();
+  await transaction(env, [
+    {
+      sql: 'INSERT INTO clients (id, full_name, email, whatsapp_number, notes, is_active, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime(\'now\'))',
+      args: [id, fullName, emailValue, whatsapp, notes],
+    },
+    crmAuditStmt(auth.admin.id, 'clients', id, 'create', null, { full_name: fullName, email: emailValue, whatsapp_number: whatsapp }),
+  ]);
+  return respond({ ok: true, client_id: id });
+});
+
+route('POST', 'admin/crm/clients/:id/services', async ({ request, env, params }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const clientId = str(params.id, 40);
+  const client = await queryOne(env, 'SELECT id FROM clients WHERE id = ? LIMIT 1', [clientId]);
+  if (!client) return fail(404, 'Cliente no encontrado');
+
+  const body = await readJson(request);
+  const serviceType = str(body.service_type, 40);
+  const paymentKind = str(body.payment_kind, 20) === 'recurring' ? 'recurring' : 'one_time';
+  const amountCents = crmUsdToCents(body.amount_usd);
+  const status = str(body.status, 20) || 'active';
+  const startDate = str(body.start_date, 10) || crmToday();
+  const billingDay = Math.min(Math.max(num(body.billing_day, 1), 1), 28);
+
+  if (!CRM_SERVICE_TO_CATEGORY[serviceType]) return fail(400, 'Tipo de servicio inválido');
+  if (!amountCents || amountCents <= 0) return fail(400, 'El precio debe ser mayor a cero');
+
+  const serviceId = crmId();
+  const statements = [
+    {
+      sql: 'INSERT INTO client_services (id, client_id, service_type, payment_kind, amount_cents, status, start_date, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime(\'now\'))',
+      args: [serviceId, clientId, serviceType, paymentKind, amountCents, status, startDate],
+    },
+    crmAuditStmt(auth.admin.id, 'client_services', serviceId, 'create', null, {
+      client_id: clientId,
+      service_type: serviceType,
+      payment_kind: paymentKind,
+      amount_cents: amountCents,
+    }),
+  ];
+
+  if (paymentKind === 'recurring') {
+    const membershipId = crmId();
+    const nextDue = crmNextDue(billingDay, new Date(`${startDate}T00:00:00Z`));
+    statements.push({
+      sql: 'INSERT INTO memberships (id, client_service_id, billing_day, next_due_date, status, updated_at) VALUES (?, ?, ?, ?, \'al_dia\', datetime(\'now\'))',
+      args: [membershipId, serviceId, billingDay, nextDue],
+    });
+    statements.push(
+      crmAuditStmt(auth.admin.id, 'memberships', membershipId, 'create', null, {
+        client_service_id: serviceId,
+        billing_day: billingDay,
+        next_due_date: nextDue,
+      }),
+    );
+  }
+
+  await transaction(env, statements);
+  return respond({ ok: true, service_id: serviceId });
+});
+
+route('POST', 'admin/crm/payments', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const body = await readJson(request);
+  const clientServiceId = str(body.client_service_id, 40);
+  const service = await queryOne(env, 'SELECT * FROM client_services WHERE id = ? LIMIT 1', [clientServiceId]);
+  if (!service) return fail(404, 'Servicio no encontrado');
+
+  const amountCents = crmUsdToCents(body.amount_usd) ?? num(service.amount_cents, 0);
+  if (!amountCents || amountCents <= 0) return fail(400, 'El monto debe ser mayor a cero');
+  const movementDate = str(body.date, 10) || crmToday();
+  const category = str(body.category, 40) || CRM_SERVICE_TO_CATEGORY[service.service_type] || 'web_sale';
+  if (!CRM_INCOME_CATEGORIES.includes(category)) return fail(400, 'Categoría inválida');
+
+  const shared = CRM_SHARED_CATEGORIES.includes(category);
+  const vendoPct = shared ? crmRoundPct(num(body.vendo_share_pct, 50)) : null;
+
+  const membership = await queryOne(env, 'SELECT * FROM memberships WHERE client_service_id = ? LIMIT 1', [clientServiceId]);
+  const movementId = crmId();
+  const statements = [
+    {
+      sql: `INSERT INTO movements (id, kind, category, amount_cents, description, movement_date, client_id, client_service_id, is_shared_profit, vendo_share_pct, created_by, updated_at)
+            VALUES (?, 'income', ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+      args: [movementId, category, amountCents, `Pago — ${service.service_type}`, movementDate, service.client_id, clientServiceId, shared ? 1 : 0, vendoPct, auth.admin.id],
+    },
+    crmAuditStmt(auth.admin.id, 'movements', movementId, 'create', null, {
+      kind: 'income',
+      category,
+      amount_cents: amountCents,
+      client_service_id: clientServiceId,
+    }),
+  ];
+
+  if (shared) {
+    const partnerId = crmId();
+    const partnerCents = crmPartnerCents(amountCents, vendoPct);
+    statements.push({
+      sql: `INSERT INTO movements (id, kind, category, amount_cents, description, movement_date, client_id, client_service_id, is_shared_profit, linked_movement_id, created_by, updated_at)
+            VALUES (?, 'expense', 'partner_payout', ?, ?, ?, ?, ?, 0, ?, ?, datetime('now'))`,
+      args: [partnerId, partnerCents, `Pago a socio — ${category}`, movementDate, service.client_id, clientServiceId, movementId, auth.admin.id],
+    });
+    statements.push(
+      crmAuditStmt(auth.admin.id, 'movements', partnerId, 'create', null, {
+        kind: 'expense',
+        category: 'partner_payout',
+        amount_cents: partnerCents,
+        linked_movement_id: movementId,
+      }),
+    );
+  }
+
+  if (membership) {
+    const nextDue = crmNextDue(membership.billing_day);
+    statements.push({
+      sql: "UPDATE memberships SET last_payment_date = ?, next_due_date = ?, status = 'al_dia', suspension_date = NULL, updated_at = datetime('now') WHERE id = ?",
+      args: [movementDate, nextDue, membership.id],
+    });
+    statements.push(
+      crmAuditStmt(auth.admin.id, 'memberships', membership.id, 'update', { status: membership.status, next_due_date: membership.next_due_date }, { status: 'al_dia', next_due_date: nextDue, last_payment_date: movementDate }),
+    );
+  }
+
+  await transaction(env, statements);
+  return respond({ ok: true, movement_id: movementId });
+});
+
+route('GET', 'admin/crm/cobros', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const settings = await queryOne(env, "SELECT * FROM settings WHERE id = 'global' LIMIT 1");
+  const warningDays = num(settings && settings.days_before_due_warning, 5);
+
+  const rows = await query(
+    env,
+    `SELECT m.id AS membership_id, cs.id AS client_service_id, c.id AS client_id, c.full_name AS client_name,
+            c.whatsapp_number, c.email, cs.service_type, cs.amount_cents, m.billing_day, cs.start_date,
+            m.next_due_date, m.last_payment_date, m.status, m.suspension_date
+       FROM memberships m
+       JOIN client_services cs ON cs.id = m.client_service_id
+       JOIN clients c ON c.id = cs.client_id
+      ORDER BY m.next_due_date ASC`,
+  );
+
+  const cobros = rows.map((row) => {
+    const overdue = crmDaysOverdue(row.next_due_date);
+    const until = crmDaysUntil(row.next_due_date);
+    let status = row.status;
+    if (status !== 'suspendido') {
+      if (overdue > 0) status = 'vencido';
+      else if (until <= warningDays) status = 'proximo_a_vencer';
+      else status = 'al_dia';
+    }
+    const template = (settings && settings.whatsapp_reminder_template) || 'Hola {nombre}, tu pago de {monto} por {servicio} vence el {fecha}.';
+    const message = crmFill(template, {
+      nombre: row.client_name,
+      monto: crmFormatUsd(row.amount_cents),
+      servicio: row.service_type,
+      fecha: row.next_due_date,
+      dias_mora: overdue,
+    });
+    return {
+      ...row,
+      status,
+      days_overdue: overdue,
+      days_until: until,
+      whatsapp_url: crmWaUrl(row.whatsapp_number, message),
+    };
+  });
+
+  return respond({ ok: true, cobros, warning_days: warningDays });
+});
+
+route('GET', 'admin/crm/settings', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  const settings = await queryOne(env, "SELECT * FROM settings WHERE id = 'global' LIMIT 1");
+  if (!settings) return fail(404, 'No existe la configuración global');
+  return respond({ ok: true, settings });
+});
+
+route('PUT', 'admin/crm/settings', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const existing = await queryOne(env, "SELECT * FROM settings WHERE id = 'global' LIMIT 1");
+  if (!existing) return fail(404, 'No existe la configuración global');
+
+  const body = await readJson(request);
+  const payload = {
+    photography_vendo_pct: crmRoundPct(num(body.photography_vendo_pct, existing.photography_vendo_pct)),
+    branding_vendo_pct: crmRoundPct(num(body.branding_vendo_pct, existing.branding_vendo_pct)),
+    days_before_due_warning: Math.min(Math.max(num(body.days_before_due_warning, existing.days_before_due_warning), 0), 60),
+    days_overdue_to_suspend: Math.min(Math.max(num(body.days_overdue_to_suspend, existing.days_overdue_to_suspend), 0), 120),
+    whatsapp_reminder_template: str(body.whatsapp_reminder_template, 1000) || existing.whatsapp_reminder_template,
+    email_reminder_subject: str(body.email_reminder_subject, 200) || existing.email_reminder_subject,
+    email_reminder_template: str(body.email_reminder_template, 2000) || existing.email_reminder_template,
+  };
+
+  await transaction(env, [
+    {
+      sql: `UPDATE settings SET photography_vendo_pct = ?, branding_vendo_pct = ?, days_before_due_warning = ?, days_overdue_to_suspend = ?, whatsapp_reminder_template = ?, email_reminder_subject = ?, email_reminder_template = ?, updated_at = datetime('now') WHERE id = 'global'`,
+      args: [
+        payload.photography_vendo_pct,
+        payload.branding_vendo_pct,
+        payload.days_before_due_warning,
+        payload.days_overdue_to_suspend,
+        payload.whatsapp_reminder_template,
+        payload.email_reminder_subject,
+        payload.email_reminder_template,
+      ],
+    },
+    crmAuditStmt(auth.admin.id, 'settings', 'global', 'update', existing, payload),
+  ]);
+
+  return respond({ ok: true });
+});
+
+route('GET', 'admin/crm/audit', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const url = new URL(request.url);
+  const tableName = str(url.searchParams.get('table') || '', 40);
+  const args = [];
+  let where = '';
+  if (tableName) {
+    where = 'WHERE a.table_name = ?';
+    args.push(tableName);
+  }
+
+  const rows = await query(
+    env,
+    `SELECT a.id, a.table_name, a.record_id, a.action, a.created_at, a.old_values, a.new_values,
+            u.display_name AS user_name
+       FROM audit_log a
+       LEFT JOIN users u ON u.id = a.user_id
+       ${where}
+      ORDER BY a.created_at DESC
+      LIMIT 200`,
+    args,
+  );
+  return respond({ ok: true, audit: rows });
+});
+
+route('GET', 'admin/crm/notifications', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const settings = await queryOne(env, "SELECT * FROM settings WHERE id = 'global' LIMIT 1");
+  const warningDays = num(settings && settings.days_before_due_warning, 5);
+  const suspendDays = num(settings && settings.days_overdue_to_suspend, 7);
+
+  const rows = await query(
+    env,
+    `SELECT m.id AS membership_id, c.full_name AS client_name, cs.service_type, cs.amount_cents,
+            m.next_due_date, m.status
+       FROM memberships m
+       JOIN client_services cs ON cs.id = m.client_service_id
+       JOIN clients c ON c.id = cs.client_id
+      WHERE m.status != 'suspendido'`,
+  );
+
+  const alerts = [];
+  for (const row of rows) {
+    const overdue = crmDaysOverdue(row.next_due_date);
+    const until = crmDaysUntil(row.next_due_date);
+    if (overdue >= suspendDays) {
+      alerts.push({ type: 'suspension_suggested', membership_id: row.membership_id, message: `${row.client_name}: ${row.service_type} supera ${suspendDays} días de mora. Sugerimos suspender.` });
+    } else if (overdue > 0) {
+      alerts.push({ type: 'payment_overdue', membership_id: row.membership_id, message: `${row.client_name}: ${row.service_type} venció el ${row.next_due_date} (${overdue} día(s) de mora).` });
+    } else if (until <= warningDays) {
+      alerts.push({ type: 'payment_due_soon', membership_id: row.membership_id, message: `${row.client_name}: ${row.service_type} vence el ${row.next_due_date} (${until} día(s)).` });
+    }
+  }
+
+  return respond({ ok: true, count: alerts.length, alerts });
 });
 
 function pathSegments(context) {

@@ -1,4 +1,0 @@
-# Redirige el antiguo /admin al panel desplegado aparte en Cloudflare Pages.
-# Si el proyecto del panel tiene otro nombre, actualiza esta URL.
-/admin      https://vendo-panel.pages.dev/         302
-/admin/*    https://vendo-panel.pages.dev/:splat   302

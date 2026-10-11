@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel Vendo</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#01110a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="../assets/css/app.css">
+<link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+
+<section id="login-view" class="login-shell">
+  <div class="card card--pad-lg login-card">
+    <div class="login-mark">V</div>
+    <h1 style="font-size:22px">Panel de administración</h1>
+    <p class="muted small" style="margin-top:8px">Acceso exclusivo para administradores de Vendo.</p>
+    <div id="gsi-btn" class="gsi-slot"></div>
+    <p id="login-error" class="alert alert--error hidden" role="alert"></p>
+    <p class="small muted" style="margin-top:10px">Solo <strong>jolex3630@gmail.com</strong> y <strong>somosvendo@gmail.com</strong>.</p>
+  </div>
+</section>
+
+<div id="app-view" class="app hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand__mark">V</span><span class="brand__name">Vendo</span></div>
+    <nav id="nav"></nav>
+    <button class="btn btn--ghost btn--sm sidebar-logout" id="logout-btn" type="button">Salir</button>
+  </aside>
+  <div class="app-main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Menú">☰</button>
+      <h1 id="page-title" class="topbar__title">Dashboard</h1>
+      <div class="topbar__actions">
+        <div class="bell-wrap">
+          <button class="icon-btn" id="bell-btn" type="button" aria-label="Notificaciones">🔔<span id="bell-count" class="bell-count hidden">0</span></button>
+          <div id="bell-panel" class="bell-panel hidden"></div>
+        </div>
+        <span id="user-email" class="small muted user-email"></span>
+      </div>
+    </header>
+    <main id="view" class="content" aria-live="polite"></main>
+  </div>
+</div>
+
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" id="modal-panel"></div>
+</div>
+
+<script src="../assets/js/admin.js" defer></script>
+</body>
+</html>
