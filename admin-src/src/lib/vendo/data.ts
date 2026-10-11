@@ -1,0 +1,215 @@
+// Tipos y helpers del panel VENDO. Los datos reales llegan por /api/admin/crm
+// (ver `lib/vendo/api.ts` y `components/vendo/store.tsx`). No hay datos mock.
+
+export type TransactionStatus = 'Completado' | 'Pendiente' | 'Vencido';
+export type TransactionType = 'Ingreso' | 'Egreso';
+
+export type ClientService = {
+  id: string;
+  serviceType: string;
+  serviceLabel: string;
+  paymentKind: string;
+  amountCents: number;
+  nextDueDate: string | null;
+  status: string | null;
+};
+
+export type Client = {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  whatsapp: string;
+  service: string;
+  initials: string;
+  tone: string;
+  status: string;
+  isEntrepreneur: boolean;
+  services: ClientService[];
+};
+
+export type Transaction = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  description: string;
+  category: string;
+  service: string;
+  amount: number;
+  date: string;
+  status: TransactionStatus;
+  type: TransactionType;
+};
+
+export type Movement = {
+  id: string;
+  kind: 'income' | 'expense';
+  category: string;
+  amount_cents: number;
+  description: string | null;
+  movement_date: string;
+  client_id: string | null;
+  client_name: string | null;
+};
+
+export type Summary = { income_cents: number; expense_cents: number; net_cents: number };
+export type SeriesPoint = { month: string; income_cents: number; expense_cents: number; net_cents: number };
+export type CategoryTotal = { category: string; total_cents: number };
+export type SummaryResponse = {
+  summary: Summary;
+  series: SeriesPoint[];
+  income_by_category: CategoryTotal[];
+  expense_by_category: CategoryTotal[];
+};
+
+export type Cobro = {
+  membership_id: string;
+  client_service_id: string;
+  client_id: string;
+  client_name: string;
+  whatsapp_number: string | null;
+  email: string | null;
+  service_type: string;
+  amount_cents: number;
+  billing_day: number;
+  start_date: string;
+  next_due_date: string;
+  last_payment_date: string | null;
+  status: string;
+  days_overdue: number;
+  days_until: number;
+  whatsapp_url: string;
+};
+
+export type Alert = { type: string; membership_id?: string; message: string };
+
+export type ApiSettings = {
+  photography_vendo_pct: string | number;
+  branding_vendo_pct: string | number;
+  days_before_due_warning: string | number;
+  days_overdue_to_suspend: string | number;
+  whatsapp_reminder_template: string;
+  email_reminder_subject: string;
+  email_reminder_template: string;
+};
+
+export type AuditRow = { id: string; table_name: string; record_id: string; action: string; created_at: string; user_name: string | null };
+
+// Etiquetas de dominio (mismas que la API del admin anterior).
+export const CATEGORY_LABELS: Record<string, string> = {
+  web_sale: 'Venta web',
+  hosting_monthly: 'Hosting mensual',
+  vendo_conecta_monthly: 'Vendo Conecta mensual',
+  feature_implementation: 'Implementación',
+  photography: 'Sesión fotográfica',
+  branding: 'Creación de marca',
+  subscription: 'Suscripción',
+  nfc_reinvestment: 'Reinversión NFC',
+  unexpected: 'Imprevisto',
+  savings: 'Ahorro',
+  partner_payout: 'Pago a socio',
+};
+
+export const SERVICE_LABELS: Record<string, string> = {
+  web_dev: 'Desarrollo web',
+  hosting: 'Hosting',
+  vendo_conecta: 'Vendo Conecta',
+  nfc_cards: 'Tarjetas NFC',
+  photography: 'Sesión fotográfica',
+  branding: 'Creación de marca',
+  feature_implementation: 'Implementación',
+};
+
+export const INCOME_CATEGORIES = [
+  'web_sale',
+  'hosting_monthly',
+  'vendo_conecta_monthly',
+  'feature_implementation',
+  'photography',
+  'branding',
+  'subscription',
+];
+export const EXPENSE_CATEGORIES = ['nfc_reinvestment', 'unexpected', 'savings', 'partner_payout'];
+export const ALL_CATEGORIES = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
+export const SERVICE_TYPES = Object.keys(SERVICE_LABELS);
+// Etiquetas de servicio visibles en la UI (filtro de movimientos por categoría).
+export const SERVICES = INCOME_CATEGORIES.slice(0, 3).map((c) => CATEGORY_LABELS[c] ?? c);
+
+export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
+  al_dia: 'Activo',
+  proximo_a_vencer: 'Próximo',
+  vencido: 'Vencido',
+  suspendido: 'Suspendido',
+};
+
+export const TONES = ['lime', 'teal', 'sand', 'blue', 'rose'];
+
+export function categoryLabel(category: string): string {
+  return CATEGORY_LABELS[category] || category;
+}
+export function serviceLabel(serviceType: string): string {
+  return SERVICE_LABELS[serviceType] || serviceType;
+}
+export function serviceToCategory(serviceType: string): string {
+  const map: Record<string, string> = {
+    web_dev: 'web_sale',
+    hosting: 'hosting_monthly',
+    vendo_conecta: 'vendo_conecta_monthly',
+    nfc_cards: 'feature_implementation',
+    feature_implementation: 'feature_implementation',
+    photography: 'photography',
+    branding: 'branding',
+  };
+  return map[serviceType] || 'web_sale';
+}
+export function toneFor(index: number): string {
+  return TONES[index % TONES.length];
+}
+export function initialsOf(name: string): string {
+  return (
+    String(name || '')
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0] || '')
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '—'
+  );
+}
+
+export function money(value: number, _currency?: string): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(Number(value) || 0);
+}
+
+const MONTHS_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+export function shortDate(date: string): string {
+  const iso = String(date || '').slice(0, 10);
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return date || '';
+  return `${String(d.getDate()).padStart(2, '0')} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+export function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function exportCsv(transactions: Transaction[], _clients?: Client[]): void {
+  const cell = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
+  const rows = [
+    ['ID', 'Cliente', 'Categoría', 'Importe (USD)', 'Fecha', 'Estado', 'Tipo'],
+    ...transactions.map((t) => [t.id, t.clientName, t.service, t.amount.toFixed(2), t.date, t.status, t.type]),
+  ];
+  const blob = new Blob(['\uFEFF' + rows.map((r) => r.map(cell).join(',')).join('\n')], {
+    type: 'text/csv;charset=utf-8;',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vendo-movimientos.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}

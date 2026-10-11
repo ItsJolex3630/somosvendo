@@ -1,0 +1,1 @@
+export function vendoHead(title: string, description: string) { return { meta: [{ title: `${title} — VENDO` }, { name: 'description', content: description }, { property: 'og:title', content: `${title} — VENDO` }, { property: 'og:description', content: description }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }; }
