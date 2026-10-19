@@ -97,7 +97,9 @@ INSERT OR IGNORE INTO tenants (slug, nombre, descripcion, logo_url, color_primar
 
 INSERT OR IGNORE INTO admins (email, nombre, rol) VALUES
   ('jolex3630@gmail.com', 'Jolex', 'superadmin'),
-  ('somosvendo@gmail.com', 'VENDO', 'superadmin');
+  ('somosvendo@gmail.com', 'VENDO', 'superadmin'),
+  ('somosvendo.ve@gmail.com', 'Socio Vendo VE', 'superadmin'),
+  ('sebastiiam.castellanoopsu2026@gmail.com', 'Sebastián', 'superadmin');
 
 INSERT OR IGNORE INTO reglas (tenant_id, clave, valor, descripcion) SELECT id, 'duracion_dias', '30', 'Días de vigencia al confirmar un pago' FROM tenants WHERE slug = 'masafacil';
 INSERT OR IGNORE INTO reglas (tenant_id, clave, valor, descripcion) SELECT id, 'gracia_dias', '3', 'Días de gracia tras el vencimiento' FROM tenants WHERE slug = 'masafacil';

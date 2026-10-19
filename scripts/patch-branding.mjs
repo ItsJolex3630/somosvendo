@@ -44,6 +44,10 @@ const statements = [
     sql: "INSERT OR IGNORE INTO admins (email, nombre, rol) VALUES (?, ?, 'superadmin')",
     args: [text('somosvendo@gmail.com'), text('VENDO')],
   },
+  {
+    sql: "INSERT OR IGNORE INTO admins (email, nombre, rol) VALUES (?, ?, 'superadmin')",
+    args: [text('sebastiiam.castellanoopsu2026@gmail.com'), text('Sebastián')],
+  },
 ];
 
 const requests = statements.map((s) => ({ type: 'execute', stmt: { sql: s.sql, args: s.args } }));
