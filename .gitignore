@@ -6,3 +6,9 @@ node_modules/
 .next/
 .vercel/
 
+
+
+# SEGURIDAD CRÍTICA: Bloqueo de variables de entorno
+.env
+.env.*
+!.env.example

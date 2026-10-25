@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin-legacy/
+
+Sitemap: https://somosvendo.pages.dev/sitemap.xml
