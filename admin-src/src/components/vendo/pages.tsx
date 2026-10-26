@@ -271,6 +271,22 @@ export function SettingsPage() {
         </section>
 
         <section className="settings-section">
+          <h2>Inteligencia Artificial de Do (Gemini 2.5 Flash)</h2>
+          <p className="text-muted-foreground text-[11px] mb-3">
+            Ingresa tu API Key de Google Gemini para darle a Do razonamiento ejecutivo nativo y comprensión conversacional de nivel superior (100% gratuita en <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" className="text-primary underline">aistudio.google.com</a>).
+          </p>
+          <label className="field">
+            Google Gemini API Key
+            <Input
+              type="password"
+              placeholder="AIzaSy..."
+              value={draft.gemini_api_key || ''}
+              onChange={(e) => setDraft({ ...draft, gemini_api_key: e.target.value })}
+            />
+          </label>
+        </section>
+
+        <section className="settings-section">
           <h2>Notificaciones</h2>
           <div className="settings-toggle">
             <div><label htmlFor="payment-notifications">Actividad de cobros</label><p>Recibe notificaciones al registrar un pago.</p></div>

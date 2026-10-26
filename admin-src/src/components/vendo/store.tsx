@@ -214,6 +214,7 @@ export function VendoProvider({ children }: { children: ReactNode }) {
       whatsapp_reminder_template: api?.whatsapp_reminder_template ?? '',
       email_reminder_subject: api?.email_reminder_subject ?? '',
       email_reminder_template: api?.email_reminder_template ?? '',
+      gemini_api_key: api?.gemini_api_key ?? '',
       currency: 'USD',
     };
   }, [settingsQuery.data, local]);
@@ -291,6 +292,7 @@ export function VendoProvider({ children }: { children: ReactNode }) {
         whatsapp_reminder_template: input.whatsapp_reminder_template,
         email_reminder_subject: input.email_reminder_subject,
         email_reminder_template: input.email_reminder_template,
+        gemini_api_key: input.gemini_api_key,
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['settings'] }),
   });

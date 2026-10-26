@@ -121,6 +121,7 @@ export type ApiSettings = {
   whatsapp_reminder_template: string;
   email_reminder_subject: string;
   email_reminder_template: string;
+  gemini_api_key?: string;
 };
 
 export type AuditRow = { id: string; table_name: string; record_id: string; action: string; created_at: string; user_name: string | null };

@@ -1149,11 +1149,22 @@ route('PUT', 'admin/crm/settings', async ({ request, env }) => {
     whatsapp_reminder_template: str(body.whatsapp_reminder_template, 1000) || existing.whatsapp_reminder_template,
     email_reminder_subject: str(body.email_reminder_subject, 200) || existing.email_reminder_subject,
     email_reminder_template: str(body.email_reminder_template, 2000) || existing.email_reminder_template,
+    gemini_api_key: body.gemini_api_key !== undefined ? str(body.gemini_api_key, 200) : existing.gemini_api_key,
   };
 
   await transaction(env, [
     {
-      sql: `UPDATE settings SET photography_vendo_pct = ?, branding_vendo_pct = ?, days_before_due_warning = ?, days_overdue_to_suspend = ?, whatsapp_reminder_template = ?, email_reminder_subject = ?, email_reminder_template = ?, updated_at = datetime('now') WHERE id = 'global'`,
+      sql: `UPDATE settings
+               SET photography_vendo_pct = ?,
+                   branding_vendo_pct = ?,
+                   days_before_due_warning = ?,
+                   days_overdue_to_suspend = ?,
+                   whatsapp_reminder_template = ?,
+                   email_reminder_subject = ?,
+                   email_reminder_template = ?,
+                   gemini_api_key = ?,
+                   updated_at = datetime('now')
+             WHERE id = 'global'`,
       args: [
         payload.photography_vendo_pct,
         payload.branding_vendo_pct,
@@ -1162,6 +1173,7 @@ route('PUT', 'admin/crm/settings', async ({ request, env }) => {
         payload.whatsapp_reminder_template,
         payload.email_reminder_subject,
         payload.email_reminder_template,
+        payload.gemini_api_key,
       ],
     },
     crmAuditStmt(auth.admin.id, 'settings', 'global', 'update', existing, payload),
@@ -1412,6 +1424,98 @@ function extractMovementDate(rawText, fallbackIso) {
   return fallbackIso;
 }
 
+function cleanConceptDescription(rawText) {
+  let s = String(rawText || '')
+    .replace(/^do\s*,?\s*/i, '')
+    // 1. Quitar fechas nombradas primero para no dejar fragmentos como "el de septiembre"
+    .replace(/\b(?:el\s+|en\s+)?\d{1,2}\s+de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\b/gi, ' ')
+    .replace(/\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b/g, ' ')
+    .replace(/\b(?:ayer|antier|anteayer|del\s+mes\s+pasado|el\s+mes\s+pasado|hace\s+\d+\s+dias?)\b/gi, ' ')
+    // 2. Quitar montos y divisas
+    .replace(/\$?\s*\d+(?:[.,]\d{1,2})?\s*(?:usd|d[oó]lares|d[oó]lar|\$)?/gi, ' ')
+    .replace(/\b(?:d[oó]lares|d[oó]lar|usd|\$)\b/gi, ' ')
+    // 3. Quitar preámbulo de comando o queja
+    .replace(/^(?:la gracia era que|la idea era que|lo que queria era que|queria que|te pedi que|te pido que|necesito que|no era eso,?|te equivocaste,?|me entendiste mal,?)\s+/i, ' ')
+    .replace(/^(?:por favor\s*)?(?:puedes\s+)?(?:registra|anade|añade|agrega|anota|coloca|mete)\s+(?:un\s+)?(?:nuevo\s+)?(?:gasto|egreso|ingreso|ganancia|cobro|pago|pago mensual|gasto mensual)?/i, ' ')
+    // 4. Quitar conectores
+    .replace(/(?:que fue pagado|pagado|ocurrio|fue|fueron|uno de los (?:gatos|gastos) fue|otro fue|otro fueron|y otro fue|y otro fueron|otro gasto fue|otro|además|también)/gi, ' ')
+    .replace(/\b(?:mensual|fijo|unico|del mes pasado|el mes pasado)\b/gi, ' ')
+    .replace(/\b(?:uno\s+de|otro\s+de|y\s+otro\s+de)\b/gi, ' ')
+    .replace(/^[,\s;:\-–—\$\.]+|[,\s;:\-–—\$\.]+$/g, '')
+    .replace(/\b(?:y|e|o|ademas|otro|otra)\s*$/gi, '')
+    .replace(/^(?:por|para|en|de)\s+/i, '')
+    .replace(/^[,\s;:\-–—\$\.]+|[,\s;:\-–—\$\.]+$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (!s || s.length < 2) return null;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+async function callGeminiAgent({ apiKey, userMessage, context }) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  const systemPrompt = `Eres Do, el agente y director ejecutivo inteligente de VENDO Studio dentro del panel CRM.
+Tienes control y lectura total sobre Turso DB.
+Fecha actual de hoy: ${context.today}.
+
+ESTADO ACTUAL DE TURSO DB:
+- Clientes registrados (${context.clients.length}): ${JSON.stringify(context.clients.map((c) => ({ id: c.id, nombre: c.full_name })))}
+- Últimos movimientos: ${JSON.stringify(context.movements.slice(0, 10).map((m) => ({ id: m.id, tipo: m.kind, monto: m.amount_cents / 100, desc: m.description, fecha: m.movement_date, cat: m.category, freq: m.frequency })))}
+- Reglas aprendidas en tu memoria: ${JSON.stringify(context.memories.map((m) => m.content))}
+- Categorías: ${JSON.stringify(context.categories.map((c) => ({ slug: c.slug, nombre: c.label, tipo: c.kind })))}
+
+REGLAS DE ACTUACIÓN:
+1. Si el usuario pide registrar 1 o MÁS gastos/ingresos (incluso varios en una sola frase):
+   - Genera una acción 'create_movement' POR CADA ÍTEM con su monto individual, fecha específica (parseando "mes pasado", "8 de septiembre", "ayer", etc.), categoría exacta, frecuencia ('recurring' para fijos/mensuales o 'one_time') y descripción LIMPIA (ej. "Google IA Pro", "Opencode Go", "Kimi Plus"). NUNCA guardes el texto de la conversación como concepto.
+2. Si el usuario te reclama o corrige ("la gracia era que...", "te equivocaste...", "borra el anterior"):
+   - Identifica el/los movimientos erróneos recientes y añade la acción 'delete_movement' con su id, y genera 'create_movement' con los datos corregidos.
+3. Si el usuario pide editar fecha o monto de un movimiento existente: genera 'update_movement' con el id y los campos modificados.
+4. Responde con un Markdown ejecutivo, claro, con emojis, desglosando cada ítem y los totales calculados.
+
+DEBES RESPONDER EXCLUSIVAMENTE CON ESTE OBJETO JSON:
+{
+  "reply": "Texto en markdown explicando las acciones ejecutadas o la respuesta analítica",
+  "actions": [
+    {
+      "type": "create_movement",
+      "data": {
+        "kind": "expense" | "income",
+        "amount_usd": 10.0,
+        "description": "Nombre limpio del concepto",
+        "date": "YYYY-MM-DD",
+        "category": "ai_credits" | "software_sub" | "advertising" | "nfc_reinvestment" | "domains_servers" | "unexpected" | "web_sale" | "google_maps" | "hosting_monthly",
+        "frequency": "one_time" | "recurring",
+        "client_id": null
+      },
+      "label": "Gasto (Fijo / Mensual): $10.00 — Google IA Pro"
+    }
+  ]
+}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gemini API respondió con estado ${res.status}`);
+  }
+
+  const json = await res.json();
+  const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!rawText) throw new Error('Respuesta vacía de Gemini');
+  return JSON.parse(rawText);
+}
+
 route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
   const auth = await crmAuth(request, env);
   if (!auth.ok) return fail(auth.status, auth.error);
@@ -1459,6 +1563,81 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
   const textLower = norm(userMessage);
   const actionsExecuted = [];
   const replyParts = [];
+
+  // Obtener API Key de Gemini si existe en settings o env
+  const geminiKey = (env && env.GEMINI_API_KEY) || (settings && settings.gemini_api_key) || null;
+
+  // Si hay Gemini API Key disponible, intentamos procesar con Gemini 2.5 Flash
+  if (geminiKey) {
+    try {
+      const geminiResult = await callGeminiAgent({
+        apiKey: geminiKey,
+        userMessage,
+        context: {
+          today: crmToday(),
+          clients,
+          movements,
+          categories: customCats,
+          memories,
+          settings,
+        },
+      });
+
+      if (geminiResult && geminiResult.actions && Array.isArray(geminiResult.actions)) {
+        for (const act of geminiResult.actions) {
+          if (act.type === 'create_movement' && act.data) {
+            const movId = crmId();
+            const amtCents = Math.round(Number(act.data.amount_usd || 0) * 100);
+            if (amtCents > 0) {
+              await execute(
+                env,
+                `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, created_by, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))`,
+                [
+                  movId,
+                  act.data.kind || 'expense',
+                  act.data.category || 'software_sub',
+                  act.data.frequency || 'one_time',
+                  amtCents,
+                  act.data.description || 'Gasto operativo',
+                  act.data.date || crmToday(),
+                  act.data.client_id || null,
+                  String(auth.admin.id),
+                ],
+              );
+              actionsExecuted.push(act);
+            }
+          } else if (act.type === 'delete_movement' && act.data && act.data.id) {
+            await execute(env, 'DELETE FROM movements WHERE id = ? OR linked_movement_id = ?', [act.data.id, act.data.id]);
+            actionsExecuted.push(act);
+          } else if (act.type === 'update_movement' && act.data && act.data.id) {
+            const amtCents = act.data.amount_usd ? Math.round(Number(act.data.amount_usd) * 100) : null;
+            await execute(
+              env,
+              `UPDATE movements
+                  SET movement_date = COALESCE(?, movement_date),
+                      amount_cents = COALESCE(?, amount_cents),
+                      description = COALESCE(?, description),
+                      updated_at = datetime('now')
+                WHERE id = ?`,
+              [act.data.date || null, amtCents, act.data.description || null, act.data.id],
+            );
+            actionsExecuted.push(act);
+          }
+        }
+
+        const finalReply = geminiResult.reply || 'Operación completada con éxito.';
+        await batch(env, [
+          { sql: "INSERT INTO do_chat_messages (id, role, content, actions_json, created_at) VALUES (?, 'user', ?, NULL, datetime('now'))", args: [crmId(), userMessage] },
+          { sql: "INSERT INTO do_chat_messages (id, role, content, actions_json, created_at) VALUES (?, 'assistant', ?, ?, datetime('now'))", args: [crmId(), finalReply, actionsExecuted.length ? JSON.stringify(actionsExecuted) : null] },
+        ]);
+
+        return respond({ ok: true, reply: finalReply, actions: actionsExecuted });
+      }
+    } catch (geminiErr) {
+      console.error('Fallo en Gemini, ejecutando motor semántico fallback:', geminiErr);
+    }
+  }
 
   // Helper para buscar cliente mencionado en el mensaje
   function findMentionedClient(msgNorm) {
@@ -1528,6 +1707,76 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
     if (/(implementacion|mejora|funcion|extra)/.test(msgNorm)) return 'feature_implementation';
     if (/(suscripcion|retainer|mensual)/.test(msgNorm)) return 'subscription';
     return 'web_sale';
+  }
+
+  function parseMultiItems(userMessageText, defaultDate, defaultFrequency, defaultKind) {
+    const normText = String(userMessageText || '').replace(/\r?\n/g, ' ').trim();
+    const cleanNorm = normText.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    const amountRegex = /(?:(?:\$|\bde\s+\$|\bpor\s+\$)\s*(\d+(?:[.,]\d{1,2})?)|(\d+(?:[.,]\d{1,2})?)\s*(?:\$|usd|dolares|dolar|dlrs|verdes)|(?:de|por|fueron|fue|pague|gaste)\s+\$?\s*(\d+(?:[.,]\d{1,2})?)(?:\s*(?:usd|dolares|dolar|dlrs|verdes|\$))?)/gi;
+
+    const matches = [];
+    let m;
+    while ((m = amountRegex.exec(cleanNorm)) !== null) {
+      const valStr = m[1] || m[2] || m[3];
+      if (!valStr) continue;
+      const val = parseFloat(valStr.replace(',', '.'));
+      const after = cleanNorm.slice(m.index + m[0].length, m.index + m[0].length + 20).toLowerCase();
+      if (/^\s*de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)/.test(after)) {
+        continue;
+      }
+      matches.push({ amount: val, start: m.index, end: m.index + m[0].length });
+    }
+
+    if (matches.length === 0) return [];
+
+    const globalDate = extractMovementDate(userMessageText, defaultDate);
+    const items = [];
+
+    for (let i = 0; i < matches.length; i++) {
+      const cur = matches[i];
+      const prev = i > 0 ? matches[i - 1] : null;
+      const next = i < matches.length - 1 ? matches[i + 1] : null;
+
+      const textAfter = normText.slice(cur.end, next ? next.start : normText.length);
+      const textBefore = normText.slice(prev ? prev.end : 0, cur.start);
+
+      let conceptAfter = cleanConceptDescription(textAfter);
+      let conceptBefore = cleanConceptDescription(textBefore);
+
+      let chosenConcept = '';
+      if (conceptAfter && conceptAfter.length >= 2 && !/^(?:gasto|ingreso|otro)/i.test(conceptAfter)) {
+        chosenConcept = conceptAfter;
+      } else if (conceptBefore && conceptBefore.length >= 2 && !/^(?:gasto|ingreso|otro)/i.test(conceptBefore)) {
+        chosenConcept = conceptBefore;
+      } else {
+        chosenConcept = conceptAfter || conceptBefore || (defaultKind === 'expense' ? 'Gasto operativo' : 'Ingreso Vendo');
+      }
+
+      chosenConcept = chosenConcept.charAt(0).toUpperCase() + chosenConcept.slice(1);
+
+      const segment = (textBefore + ' ' + textAfter).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const itemDate = extractMovementDate(textAfter, globalDate);
+
+      let cat = defaultKind === 'expense' ? inferExpenseCategory(segment) : inferIncomeCategory(segment);
+      if (/(google ia|gemini|kimi|opencode|claude|openai|chatgpt|canva|notion|figma|midjourney|software|suscripcion)/i.test(segment)) {
+        if (!/(token|credito extra|recarga)/i.test(segment)) {
+          cat = 'software_sub';
+        }
+      }
+
+      items.push({
+        amount_usd: cur.amount,
+        amount_cents: Math.round(cur.amount * 100),
+        description: chosenConcept,
+        date: itemDate,
+        category: cat,
+        frequency: defaultFrequency,
+        kind: defaultKind,
+      });
+    }
+
+    return items;
   }
 
   // =========================================================================
@@ -1675,71 +1924,69 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
   }
 
   // =========================================================================
-  // INTENCIÓN 5: REGISTRAR GASTO (ÚNICO O FIJO) O INGRESO / PAGO
+  // INTENCIÓN 5: REGISTRAR GASTOS/INGRESOS (MULTI-ITEM) Y CORRECCIONES
   // =========================================================================
   const amountUsd = extractAmountUsd(userMessage);
   const isExpenseIntent =
     /\b(gasto|gastos|egreso|egresos|gaste|gastamos|pague|pagamos|compre|compramos|tuvimos que pagar|tuve que pagar|invertimos|imprevisto)\b/i.test(textLower) ||
     (!/\b(ingreso|ganancia|cobro|nos pago|cliente)\b/i.test(textLower) &&
-      /\b(recarga|creditos?\s+ia|tokens?|etiquetas?\s+nfc|publicidad|ads)\b/i.test(textLower));
+      /\b(recarga|creditos?\s+ia|tokens?|etiquetas?\s+nfc|publicidad|ads|kimi|opencode|google ia)\b/i.test(textLower));
 
   const isIncomeIntent =
     !isExpenseIntent &&
     (/(registra|anade|añade|agrega|anota|marca)\b.*\b(ingreso|ganancia|cobro|pago|venta|abono)/i.test(textLower) ||
       /\b(ingreso|ganancia|cobro|cobramos|ganamos|nos pago|pago|abono|venta)\b.*(?:\$|\d)/i.test(textLower));
 
-  if (amountUsd && !isEditIntent && (isExpenseIntent || isIncomeIntent)) {
-    const kind = isExpenseIntent ? 'expense' : 'income';
-    const frequency = /(fijo|mensual|recurrente|todos los meses|suscripcion)/i.test(textLower) ? 'recurring' : 'one_time';
-    const category = kind === 'expense' ? inferExpenseCategory(textLower) : inferIncomeCategory(textLower);
-    const mentionedClient = findMentionedClient(textLower);
-    const amountCents = Math.round(amountUsd * 100);
-    const movId = crmId();
-    const targetDate = extractMovementDate(userMessage, crmToday());
+  const isCorrection = /(la gracia era|no era eso|te equivocaste|borra eso|corrigelo|no quise decir|me entendiste mal|era que pusieras)/i.test(textLower);
+  const defaultKind = isExpenseIntent ? 'expense' : 'income';
+  const defaultFrequency = /(fijo|mensual|recurrente|todos los meses|suscripcion)/i.test(textLower) ? 'recurring' : 'one_time';
+  const defaultDate = extractMovementDate(userMessage, crmToday());
+  const parsedItems = parseMultiItems(userMessage, defaultDate, defaultFrequency, defaultKind);
+  const shouldCreateMovements = parsedItems.length > 0 && !isEditIntent && (isExpenseIntent || isIncomeIntent || isCorrection);
 
-    // Limpiar descripción legible
-    let desc = userMessage
-      .replace(/^(?:do\s*,?\s*)?(?:por favor\s*)?(?:registra|anade|añade|agrega|anota|coloca)\s+(?:un\s+)?(?:nuevo\s+)?(?:gasto|egreso|ingreso|ganancia|cobro|pago)\s*(?:unico|fijo|mensual)?\s*(?:de\s+\$?\d+(?:[.,]\d+)?\s*(?:usd|dolares|\$)?\s*)?(?:por|porque|de|para)?\s*/i, '')
-      .trim();
-    if (!desc || desc.length < 3) {
-      desc = `${catLabels[category] || category}${mentionedClient ? ` — ${mentionedClient.full_name}` : ''}`;
-    } else {
-      desc = desc.charAt(0).toUpperCase() + desc.slice(1, 180);
+  if (shouldCreateMovements) {
+    if (isCorrection && movements.length > 0) {
+      const recentCandidates = movements.slice(0, 2);
+      for (const cand of recentCandidates) {
+        await execute(env, 'DELETE FROM movements WHERE id = ? OR linked_movement_id = ?', [cand.id, cand.id]);
+        actionsExecuted.push({
+          type: 'movement_deleted',
+          label: `Anulado por corrección: ${cand.description || cand.category} (${crmFormatUsd(cand.amount_cents)})`,
+        });
+      }
     }
 
-    await execute(
-      env,
-      `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, created_by, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))`,
-      [movId, kind, category, frequency, amountCents, desc, targetDate, mentionedClient ? mentionedClient.id : null, String(auth.admin.id)],
-    );
+    const itemSummaries = [];
 
-    // Actualizar array en memoria para que el cálculo inferior ya incluya este movimiento
-    movements.unshift({
-      id: movId,
-      kind,
-      category,
-      frequency,
-      amount_cents: amountCents,
-      description: desc,
-      movement_date: targetDate,
-      client_id: mentionedClient ? mentionedClient.id : null,
-      client_name: mentionedClient ? mentionedClient.full_name : null,
-    });
+    for (const it of parsedItems) {
+      const movId = crmId();
+      await execute(
+        env,
+        `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, created_by, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 0, ?, datetime('now'))`,
+        [movId, it.kind, it.category, it.frequency, it.amount_cents, it.description, it.date, String(auth.admin.id)],
+      );
 
-    const freqLabel = frequency === 'recurring' ? 'Fijo / Mensual' : 'Único por el momento';
-    actionsExecuted.push({
-      type: kind === 'expense' ? 'expense_created' : 'income_created',
-      label: `${kind === 'expense' ? 'Gasto' : 'Ingreso'} (${freqLabel}): ${crmFormatUsd(amountCents)} — ${catLabels[category] || category}`,
-    });
+      it.id = movId;
+      movements.unshift({ ...it, movement_date: it.date, client_id: null, client_name: null });
+
+      const freqBadge = it.frequency === 'recurring' ? '🔁 Fijo' : '⚡ Único';
+      actionsExecuted.push({
+        type: it.kind === 'expense' ? 'expense_created' : 'income_created',
+        label: `${it.kind === 'expense' ? 'Gasto' : 'Ingreso'} (${freqBadge}): ${crmFormatUsd(it.amount_cents)} — ${it.description} (${it.date})`,
+      });
+
+      itemSummaries.push(
+        `• **${it.description}**: **${crmFormatUsd(it.amount_cents)} USD** (Fecha: ${it.date} · ${freqBadge} · ${catLabels[it.category] || it.category})`
+      );
+    }
+
+    const titlePrefix = isCorrection ? '🔄 **¡Corregido y registrado con éxito!**' : (defaultKind === 'expense' ? '💸 **¡Gastos registrados con éxito en Turso DB!**' : '💰 **¡Ingresos registrados con éxito en Turso DB!**');
 
     replyParts.push(
-      `${kind === 'expense' ? '💸 **¡Gasto registrado en Turso DB!**' : '💰 **¡Ingreso registrado en Turso DB!**'}\n` +
-        `- **Concepto:** ${desc}\n` +
-        `- **Monto:** ${crmFormatUsd(amountCents)} USD\n` +
-        `- **Categoría:** ${catLabels[category] || category}\n` +
-        `- **Modalidad:** ${freqLabel}` +
-        (mentionedClient ? `\n- **Cliente vinculado:** ${mentionedClient.full_name}` : ''),
+      `${titlePrefix}\nHe desglosado y guardado individualmente cada uno de los movimientos solicitados:\n\n` +
+        itemSummaries.join('\n') +
+        `\n\nTodos los balances del panel han sido recalculados de forma inmediata.`
     );
   }
 

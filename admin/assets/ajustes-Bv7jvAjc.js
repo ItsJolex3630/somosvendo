@@ -1,0 +1,1 @@
+import{n as e}from"./pages-CtyApk1U.js";var t=e;export{t as component};

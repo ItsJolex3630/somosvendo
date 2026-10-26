@@ -152,7 +152,7 @@ export function DoAdminAssistant() {
                   <h2 className="text-sm font-semibold flex items-center gap-1.5">
                     Do · Agente Operativo CRM
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-mono text-primary">
-                      <Database size={9} /> Turso Live
+                      <Database size={9} /> Turso Live · Multi-Item NLU
                     </span>
                   </h2>
                   <p className="text-[10px] text-muted-foreground">

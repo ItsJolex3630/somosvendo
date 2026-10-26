@@ -1,0 +1,1 @@
+import{r as e}from"./pages-CtyApk1U.js";import{M as t}from"./index-D2j-qhUq.js";var n=t(),r=()=>(0,n.jsx)(e,{billing:!0});export{r as component};
