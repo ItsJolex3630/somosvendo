@@ -1,1 +1,0 @@
-import{r as e}from"./pages-DAIKfi53.js";import{A as t}from"./index-DOtgC4sK.js";var n=t(),r=()=>(0,n.jsx)(e,{billing:!0});export{r as component};

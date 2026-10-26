@@ -1,11 +1,13 @@
 const DEFAULT_TIMEOUT_MS = 10_000;
 const RATE_WINDOW_MS = 60_000;
+const FALLBACK_TURSO_DATABASE_URL = 'libsql://vendo-club-itsjolex3630.aws-us-east-1.turso.io';
+const FALLBACK_TURSO_AUTH_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTE2OTI5MzIsImlkIjoiMDFhMTI5MzgtNjkwMS03NGRmLTljMDYtZDBiMmU3ZDAxN2E0Iiwia2lkIjoiSnpXYUktQnpETW96eGxwdkQ3NkpTZ3dmZGVKRlBUS1BSbWt0cVFycHRVOCIsInJpZCI6ImJjYzkyYjdjLWNhMjItNGU0Ni04MmE1LTg0NTAwZDk5NTFkZCJ9.r3fLm7s-eYPX4GaIWtUnR7R-kc3OTq7WgUJreEjgEIDwvRyNgc8YNJruFw4NAGJkufpViO8DhKWp7nnufBHfAw';
 const rateBuckets = new Map();
 let lastSweep = 0;
 
 function connection(env) {
-  const raw = String((env && env.TURSO_DATABASE_URL) || '').trim();
-  const token = String((env && env.TURSO_AUTH_TOKEN) || '').trim();
+  const raw = String((env && env.TURSO_DATABASE_URL) || FALLBACK_TURSO_DATABASE_URL).trim();
+  const token = String((env && env.TURSO_AUTH_TOKEN) || FALLBACK_TURSO_AUTH_TOKEN).trim();
   if (!raw || !token) {
     throw new Error('Turso no configurado: faltan TURSO_DATABASE_URL y/o TURSO_AUTH_TOKEN');
   }

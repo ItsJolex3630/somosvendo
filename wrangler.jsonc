@@ -2,5 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "somosvendo",
   "compatibility_date": "2024-11-01",
-  "pages_build_output_dir": "."
+  "pages_build_output_dir": ".",
+  "vars": {
+    "GOOGLE_CLIENT_ID": "39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com"
+  }
 }

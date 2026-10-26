@@ -4,6 +4,7 @@ const GOOGLE_CERTS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 const GOOGLE_ISSUERS = ['accounts.google.com', 'https://accounts.google.com'];
 const CERT_TTL_MS = 60 * 60 * 1000;
 const CLOCK_SKEW_SECONDS = 300;
+const FALLBACK_GOOGLE_CLIENT_ID = '39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com';
 
 let certificateCache = { fetchedAt: 0, keys: [] };
 
@@ -76,7 +77,7 @@ export async function verifyGoogleIdToken(env, idToken) {
   if (typeof payload.iat === 'number' && payload.iat > now + CLOCK_SKEW_SECONDS) {
     throw new Error('Token emitido en el futuro');
   }
-  const expectedAudience = env && env.GOOGLE_CLIENT_ID;
+  const expectedAudience = (env && env.GOOGLE_CLIENT_ID) || FALLBACK_GOOGLE_CLIENT_ID;
   if (expectedAudience && payload.aud !== expectedAudience) {
     throw new Error('Audiencia (aud) del token inválida');
   }

@@ -109,14 +109,16 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return data as T;
 }
 
+const FALLBACK_GOOGLE_CLIENT_ID = '39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com';
+
 export async function getGoogleClientId(): Promise<string | null> {
   try {
     const res = await fetch('/api/config');
-    if (!res.ok) return null;
+    if (!res.ok) return FALLBACK_GOOGLE_CLIENT_ID;
     const cfg = (await res.json()) as { google_client_id?: string | null };
-    return cfg.google_client_id ?? null;
+    return cfg.google_client_id || FALLBACK_GOOGLE_CLIENT_ID;
   } catch {
-    return null;
+    return FALLBACK_GOOGLE_CLIENT_ID;
   }
 }
 

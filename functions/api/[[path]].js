@@ -21,6 +21,7 @@ const JSON_HEADERS = {
 
 const DEFAULT_PRICE_CURRENCY = 'USD';
 const GRACE_DAYS = 3;
+const FALLBACK_GOOGLE_CLIENT_ID = '39780826399-626q7bsjaicc7fpa81ibqoffejmabvir.apps.googleusercontent.com';
 
 export function respond(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
@@ -162,7 +163,7 @@ function findRoute(method, segments) {
 route('GET', 'health', async () => respond({ status: 'ok', timestamp: new Date().toISOString() }));
 
 route('GET', 'config', async ({ env }) =>
-  respond({ ok: true, google_client_id: env.GOOGLE_CLIENT_ID || null }),
+  respond({ ok: true, google_client_id: (env && env.GOOGLE_CLIENT_ID) || FALLBACK_GOOGLE_CLIENT_ID }),
 );
 
 
