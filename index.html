@@ -16,10 +16,38 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
-<link rel="stylesheet" href="assets/css/main.css?v=do-concierge-20261026">
+<link rel="stylesheet" href="assets/css/main.css?v=cinema-maps-20261026">
 </head>
 <body>
-<div class="scroll-progress-bar" id="scroll-progress" aria-hidden="true"></div>
+<!-- BARRA DE PROGRESO DE LECTURA SUPERIOR -->
+<div id="scroll-progress" class="scroll-progress-bar" aria-hidden="true"></div>
+
+<!-- PRELOADER CINEMÁTICO VENDO -->
+<div id="vendo-loader" class="vendo-loader" aria-hidden="true">
+  <div class="loader-stage">
+    <div class="loader-aura" aria-hidden="true"></div>
+    <div class="loader-do-wrap">
+      <svg class="loader-do-svg" viewBox="0 0 731 1031" role="img" aria-hidden="true">
+        <g transform="translate(-156.34 -31.33)">
+          <path class="do-svg-body" d="M614.34,536.33c9-11,21-17,33-25,4-3,9-4,13-6,72-33,149-46,227-50-91-21-183-34-276-43-1-10,2-19,5-28,13-46,35-87,61-126-9,14-21,24-31,39-2,2-4,3-6,5a20.92,20.92,0,0,1-4,6c-1,1-2,1-3,2-2,2-2,4-4,6a43.49,43.49,0,0,0-7,6c-6,9-14,13-21,21-1,1-3,1-4,2-1,3-4,3-6,5,0,1-1,1-1,2-4,3-7,4-11,7-1,0-3,1-4,1s-1,2-2,2c-6,2-12,6-18,3-4-1-7-5-10-9a3.67,3.67,0,0,0-1-3c-27-43-32-93-36-141-6-61-5-121,1-181-9,4-13,12-16,20-6,12-9,23-12,36v4c-1,4-2,7-2,11-3,12-4,24-6,37-3,20-2,39-4,59-1,15,1,31-1,46v27c2,29,3,58-2,88-1,5-2,10-6,10-22,3-41-11-60-23-2-1-3-1-5-2-29-20-55-38-79-62,17,38,38,72,60,109,1,2,1,3,2,5,2,3,4,5,6,8,6,12,14,23,21,34-27,14-56,20-87,27-1,0-3,2-4,2a1263.36,1263.36,0,0,1-158,25c65,7,129,11,194,18,18,2,37,2,54,10l3,3c1,2,1,5,1,7,1,48-19,92-35,137a37,37,0,0,0-5,11c24-28,45-57,76-80a100.92,100.92,0,0,1,15-7c7-2,12,4,14,10,2-1,1,2,1,2,34,82,44,168,54,256,2,19,2,37,4,56,1,20,1,39,2,59,1,29-1,59-2,88,27-153,36-308,25-463,20-7,41-1,61,5a389.2,389.2,0,0,1,110,50h2a795.38,795.38,0,0,1-95-89c-1-2-3-4-5-6-2-3-5-6-7-9-3-5-7-9-9-14Z"/>
+          <g class="do-svg-face">
+            <path class="do-svg-eye loader-eye-l" d="M490.34,503.33c-12,2-23,4-35,5-4-31-7-61-11-92,12-2,23-3,35-5,3,31,7,61,11,92Z"/>
+            <path class="do-svg-eye loader-eye-r" d="M574.34,490.33c-12,2-24,3-36,6-4-30-8-61-11-91,12-3,24-3,36-5,2,30,7,60,11,90Z"/>
+            <path class="do-svg-mouth" d="M496.34,513.33c15-2,29-6,44-7-6,6-11,13-20,15s-17-3-24-8Z"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="loader-meta">
+      <div class="loader-logo-row">
+        <span class="loader-brand">VENDO</span>
+        <span class="loader-pulse-dot"></span>
+      </div>
+      <p class="loader-caption" data-i18n="loader_loading">Optimizando presencia comercial...</p>
+      <div class="loader-track"><div class="loader-bar" id="loader-bar"></div></div>
+    </div>
+  </div>
+</div>
 <div class="wrap">
 <nav><a class="logo" href="#" aria-label="VENDO"></a><div class="nav-actions"><a class="nav-link" href="#conecta" data-i18n="nav_conecta">Conecta</a><a class="btn ghost open-quote-modal" data-i18n="nav_contact" data-i18n-href="wa" href="https://wa.me/584149428999?text=Hola%2C%20me%20gustar%C3%ADa%20consultar%20con%20el%20asesor%20de%20VENDO%20los%20planes%20y%20precios%20para%20mi%20negocio." target="_blank" rel="noopener">Escríbenos</a>
 
@@ -98,58 +126,92 @@
 </div>
 </div>
 
-<!-- Columna Derecha: Tarjeta Interactiva con Toggle -->
-<div class="maps-interactive-wrap">
-<!-- Selector Interactivo (Toggle) -->
-<div class="maps-toggle" role="tablist" aria-label="Simulador de perfil Google Maps" data-i18n-aria="aria_maps_sim">
-<button type="button" class="toggle-btn" id="toggle-bad" role="tab" aria-selected="false">
-<span class="dot-indicator red"></span> <span data-i18n="maps_toggle_bad">Sin optimizar</span>
-</button>
-<button type="button" class="toggle-btn active" id="toggle-good" role="tab" aria-selected="true">
-<span class="dot-indicator green"></span> <span data-i18n="maps_toggle_good">Con VENDO</span>
-</button>
-</div>
+  <!-- Columna Derecha: Interfaz Google Maps Next-Gen -->
+  <div class="maps-interactive-wrap">
+    <!-- Switcher Principal con Píldoras -->
+    <div class="sim-controls">
+      <span class="sim-label" data-i18n="sim_compare_label">Comparar estado:</span>
+      <div class="maps-toggle" role="tablist" aria-label="Simulador de perfil Google Maps" data-i18n-aria="aria_maps_sim">
+        <button type="button" class="toggle-btn" id="toggle-bad" role="tab" aria-selected="false">
+          <span class="dot-indicator red"></span> <span data-i18n="maps_toggle_bad">Sin optimizar</span>
+        </button>
+        <button type="button" class="toggle-btn active" id="toggle-good" role="tab" aria-selected="true">
+          <span class="dot-indicator green"></span> <span data-i18n="maps_toggle_good">Con VENDO</span>
+        </button>
+      </div>
+    </div>
 
-<!-- Tarjeta de Perfil Google Maps Dinámica -->
-<div class="card map-preview-card mode-good" id="map-card" aria-live="polite">
-<div class="pin" id="map-pin">
-<span class="pin-badge" id="pin-badge">✓ Verificado en Google</span>
-</div>
+    <!-- Mockup de Google Maps OS -->
+    <div class="card map-preview-card mode-good" id="map-card" aria-live="polite">
+      <!-- Barra Superior Estilo Buscador de Google Maps -->
+      <div class="map-search-bar" aria-hidden="true">
+        <div class="g-search-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </div>
+        <span class="g-search-text" id="sim-search-query">Comercios en San Diego, Valencia</span>
+        <span class="g-rank-badge" id="sim-rank-badge">#1 en la zona</span>
+      </div>
 
-<div class="card-content">
-<div class="card-title-row">
-<h3 id="card-name">Tu Negocio</h3>
-<span class="verified-icon" id="verified-icon" title="Perfil verificado" data-i18n-title="title_verified">✓</span>
-</div>
+      <!-- Canvas de Mapa Estilizado en SVG -->
+      <div class="sim-map-stage" id="sim-map-stage">
+        <svg class="sim-grid-svg" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden="true">
+          <!-- Calles secundarias -->
+          <line x1="0" y1="40" x2="400" y2="40" stroke="rgba(1,68,44,0.15)" stroke-width="2"/>
+          <line x1="0" y1="95" x2="400" y2="95" stroke="rgba(1,68,44,0.15)" stroke-width="2"/>
+          <line x1="0" y1="135" x2="400" y2="135" stroke="rgba(1,68,44,0.15)" stroke-width="1.5"/>
+          <line x1="80" y1="0" x2="80" y2="160" stroke="rgba(1,68,44,0.15)" stroke-width="1.5"/>
+          <line x1="220" y1="0" x2="220" y2="160" stroke="rgba(1,68,44,0.15)" stroke-width="2.5"/>
+          <line x1="330" y1="0" x2="330" y2="160" stroke="rgba(1,68,44,0.15)" stroke-width="1.5"/>
+          <!-- Ruta dinámica -->
+          <path class="sim-route-line" id="sim-route-line" d="M 40,140 Q 150,110 220,60" fill="none" stroke="var(--forest)" stroke-width="3.5" stroke-dasharray="6,4"/>
+        </svg>
 
-<div class="rating-row" id="card-rating">
-<span class="stars">★★★★★</span>
-<span class="rating-num">4.9</span>
-<span class="reviews-count">(58 opiniones)</span>
-</div>
+        <!-- Pin con Radar GPS -->
+        <div class="sim-pin-anchor" id="sim-pin-anchor">
+          <div class="sim-radar-pulse" id="sim-radar-pulse" aria-hidden="true"></div>
+          <div class="sim-map-pin" id="map-pin">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          </div>
+          <span class="pin-badge" id="pin-badge">✓ Verificado en Google</span>
+        </div>
+      </div>
 
-<p class="category-text" data-i18n="maps_cat">Comercio local · San Diego / Valencia, Carabobo</p>
+      <!-- Ficha de Información del Local -->
+      <div class="card-content">
+        <div class="card-title-row">
+          <h3 id="card-name">Tu Negocio</h3>
+          <span class="verified-icon" id="verified-icon" title="Perfil verificado" data-i18n-title="title_verified">✓</span>
+        </div>
 
-<div class="status-pill" id="card-status">
-<span class="status-dot"></span>
-<span class="status-label">Abierto ahora · Cierra 8:00 PM</span>
-</div>
+        <div class="rating-row" id="card-rating">
+          <span class="stars" id="card-stars">★★★★★</span>
+          <span class="rating-num" id="card-rating-num">4.9</span>
+          <span class="reviews-count" id="card-reviews-count">(68 opiniones verificadas)</span>
+        </div>
 
-<!-- Botones de Acción de Google Maps -->
-<div class="acts" id="card-acts">
-<span class="act-btn" data-i18n="maps_act_call">Llamar</span>
-<a href="https://wa.me/584149428999?text=Hola%2C%20me%20gustar%C3%ADa%20consultar%20con%20el%20asesor%20de%20VENDO%20los%20planes%20y%20precios%20para%20mi%20negocio." target="_blank" rel="noopener" class="act-btn act-whatsapp" id="card-wa-btn" data-i18n="maps_act_wa" data-i18n-href="wa">WhatsApp directo</a>
-<span class="act-btn" data-i18n="maps_act_dir">Cómo llegar</span>
-<span class="act-btn" data-i18n="maps_act_web">Sitio web</span>
-</div>
+        <p class="category-text" id="card-category" data-i18n="maps_cat">Comercio local · San Diego / Valencia, Carabobo</p>
 
-<!-- Pie de Tarjeta / Nota de Estado -->
-<div class="card-footer-note" id="card-footer-note">
-✓ Perfil optimizado y vinculado a WhatsApp por VENDO
-</div>
-</div>
-</div>
-</div>
+        <div class="status-pill" id="card-status">
+          <span class="status-dot"></span>
+          <span class="status-label" id="card-status-text">Abierto ahora · Cierra 8:00 PM</span>
+        </div>
+
+        <!-- Botones de Acción de Google Maps -->
+        <div class="acts" id="card-acts">
+          <span class="act-btn" data-i18n="maps_act_call">Llamar</span>
+          <a href="https://wa.me/584149428999?text=Hola%2C%20me%20gustar%C3%ADa%20consultar%20con%20el%20asesor%20de%20VENDO%20los%20planes%20y%20precios%20para%20mi%20negocio." target="_blank" rel="noopener" class="act-btn act-whatsapp" id="card-wa-btn" data-i18n="maps_act_wa" data-i18n-href="wa">WhatsApp directo</a>
+          <span class="act-btn" data-i18n="maps_act_dir">Cómo llegar</span>
+          <span class="act-btn" data-i18n="maps_act_web">Sitio web</span>
+        </div>
+
+        <!-- Métrica de Impacto Semanal en Vivo -->
+        <div class="sim-metric-bar" id="sim-metric-bar">
+          <span class="sim-metric-icon">📈</span>
+          <span class="sim-metric-txt" id="sim-metric-txt"><strong>+142 personas</strong> solicitaron ruta o llamaron esta semana</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div></section>
 
 <section class="svc" id="servicios"><div class="wrap">
@@ -729,7 +791,7 @@ Google Search Console
   </div>
 </div>
 
-<script src="assets/js/main.js?v=do-concierge-20261026"></script>
+<script src="assets/js/main.js?v=cinema-maps-20261026"></script>
 
 </body>
 </html>

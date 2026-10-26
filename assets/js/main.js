@@ -45,41 +45,6 @@ window.addEventListener('resize',updateButtonStates,{passive:true});
 updateButtonStates();
 })();
 
-// Simulador Interactivo de Google Maps (Antes vs. Después)
-(function initMapsSimulator(){
-const btnBad=document.getElementById('toggle-bad');
-const btnGood=document.getElementById('toggle-good');
-const card=document.getElementById('map-card');
-const pinBadge=document.getElementById('pin-badge');
-const cardName=document.getElementById('card-name');
-const cardRating=document.getElementById('card-rating');
-const cardStatus=document.getElementById('card-status');
-const footerNote=document.getElementById('card-footer-note');
-const waBtn=document.getElementById('card-wa-btn');
-if(!btnBad||!btnGood||!card)return;
-let mode='good';
-function t(key){const i=window.VENDO_I18N;return i?i.t(key):'';}
-function setMode(next){
-mode=next;
-const bad=next==='bad';
-const on=bad?btnBad:btnGood,off=bad?btnGood:btnBad;
-on.classList.add('active');on.setAttribute('aria-selected','true');
-off.classList.remove('active');off.setAttribute('aria-selected','false');
-card.classList.toggle('mode-bad',bad);
-card.classList.toggle('mode-good',!bad);
-const p=bad?'bad':'good';
-pinBadge.textContent=t('sim_'+p+'_badge');
-cardName.textContent=t('sim_'+p+'_name');
-cardRating.innerHTML='<span class="stars">'+t('sim_'+p+'_stars')+'</span> <span class="rating-num">'+t('sim_'+p+'_rating')+'</span> <span class="reviews-count">'+t('sim_'+p+'_reviews')+'</span>';
-cardStatus.innerHTML='<span class="status-dot"></span> <span class="status-label">'+t('sim_'+p+'_status')+'</span>';
-footerNote.textContent=t('sim_'+p+'_note');
-if(waBtn)waBtn.style.display=bad?'none':'block';
-}
-btnBad.addEventListener('click',()=>setMode('bad'));
-btnGood.addEventListener('click',()=>setMode('good'));
-document.addEventListener('vendo:langchange',()=>setMode(mode));
-setMode(mode);
-})();
 // ==========================================
 // SISTEMA DE INTERNACIONALIZACIÓN (i18n) VENDO
 // ==========================================
@@ -162,6 +127,8 @@ maps_feat2_title:'Botón directo a WhatsApp:',
 maps_feat2_p:'El cliente ve tus fotos, menú o catálogo y te contacta con un solo toque desde Google.',
 maps_feat3_title:'Estrategia de reseñas reales:',
 maps_feat3_p:'Te enseñamos a pedir opiniones a clientes satisfechos para mantenerte en el Top 3 local.',
+loader_loading:'Optimizando presencia comercial...',
+sim_compare_label:'Comparar estado:',
 maps_toggle_bad:'Sin optimizar',
 maps_toggle_good:'Con VENDO',
 maps_cat:'Comercio local · San Diego / Valencia, Carabobo',
@@ -169,19 +136,23 @@ maps_act_call:'Llamar',
 maps_act_wa:'WhatsApp directo',
 maps_act_dir:'Cómo llegar',
 maps_act_web:'Sitio web',
+sim_good_rank:'#1 en la zona',
+sim_bad_rank:'Sin posicionar (#38)',
 sim_good_badge:'✓ Verificado en Google',
 sim_good_name:'Tu Negocio',
 sim_good_stars:'★★★★★',
 sim_good_rating:'4.9',
-sim_good_reviews:'(58 opiniones)',
+sim_good_reviews:'(68 opiniones verificadas)',
 sim_good_status:'Abierto ahora · Cierra 8:00 PM',
+sim_good_metric:'<strong>+142 personas</strong> solicitaron ruta o llamaron esta semana',
 sim_good_note:'✓ Perfil optimizado y vinculado a WhatsApp por VENDO',
-sim_bad_badge:'⚠️ Sin verificar',
+sim_bad_badge:'⚠ Perfil No Verificado',
 sim_bad_name:'Tu Negocio (Sin reclamar)',
-sim_bad_stars:'★★★☆☆',
-sim_bad_rating:'3.1',
-sim_bad_reviews:'(2 opiniones antiguas)',
-sim_bad_status:'Horario no verificado · Podría estar cerrado',
+sim_bad_stars:'★★☆☆☆',
+sim_bad_rating:'2.1',
+sim_bad_reviews:'(4 opiniones desatendidas)',
+sim_bad_status:'Podría estar cerrado · Sin horario',
+sim_bad_metric:'<strong>⚠️ 85% de clientes</strong> eligen a tu competencia al no ver fotos ni WhatsApp',
 sim_bad_note:'⚠️ ¿Eres el dueño de esta empresa? Reclámala ahora en Google',
 services_h2:'Lo que hacemos por tu negocio',
 service1_h3:'Páginas web',
@@ -407,6 +378,8 @@ maps_feat2_title:'Direct WhatsApp button:',
 maps_feat2_p:'Customers view your catalog, menu, or products and contact you in a single tap from Google.',
 maps_feat3_title:'Real customer reviews:',
 maps_feat3_p:'We provide proven strategies to gather 5-star reviews from real clients and stay in the local Top 3.',
+loader_loading:'Optimizing commercial presence...',
+sim_compare_label:'Compare status:',
 maps_toggle_bad:'Unoptimized',
 maps_toggle_good:'With VENDO',
 maps_cat:'Local business · San Diego / Valencia, Carabobo',
@@ -414,19 +387,23 @@ maps_act_call:'Call',
 maps_act_wa:'WhatsApp',
 maps_act_dir:'Directions',
 maps_act_web:'Website',
+sim_good_rank:'#1 in the area',
+sim_bad_rank:'Unranked (#38)',
 sim_good_badge:'✓ Verified on Google',
 sim_good_name:'Your Business',
 sim_good_stars:'★★★★★',
 sim_good_rating:'4.9',
-sim_good_reviews:'(58 reviews)',
+sim_good_reviews:'(68 verified reviews)',
 sim_good_status:'Open now · Closes 8:00 PM',
+sim_good_metric:'<strong>+142 people</strong> requested directions or called this week',
 sim_good_note:'✓ Profile optimized and linked to WhatsApp by VENDO',
-sim_bad_badge:'⚠️ Not verified',
+sim_bad_badge:'⚠ Unverified Profile',
 sim_bad_name:'Your Business (Unclaimed)',
-sim_bad_stars:'★★★☆☆',
-sim_bad_rating:'3.1',
-sim_bad_reviews:'(2 old reviews)',
+sim_bad_stars:'★★☆☆☆',
+sim_bad_rating:'2.1',
+sim_bad_reviews:'(4 unattended reviews)',
 sim_bad_status:'Hours unconfirmed · May be closed',
+sim_bad_metric:'<strong>⚠️ 85% of customers</strong> choose competitors when photos and WhatsApp are missing',
 sim_bad_note:'⚠️ Are you the owner of this business? Claim it on Google',
 services_h2:'What we do for your business',
 service1_h3:'Websites',
@@ -1067,4 +1044,97 @@ closeModal();
 
 // Estado inicial del mensaje
 updateLiveMessage();
+})();
+
+// ==========================================================================
+// PRELOADER CINEMÁTICO VENDO
+// ==========================================================================
+(function initCinemaExperience(){
+  const loader = document.getElementById('vendo-loader');
+  const loaderBar = document.getElementById('loader-bar');
+  if (!loader) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    loader.classList.add('is-hidden');
+    loader.setAttribute('aria-hidden', 'true');
+    document.body.classList.add('loaded-done');
+    return;
+  }
+
+  let progress = 18;
+  const progressTimer = setInterval(() => {
+    progress += Math.floor(Math.random() * 24) + 12;
+    if (progress > 95) progress = 95;
+    if (loaderBar) loaderBar.style.width = progress + '%';
+  }, 100);
+
+  function dismissLoader() {
+    clearInterval(progressTimer);
+    if (loaderBar) loaderBar.style.width = '100%';
+    setTimeout(() => {
+      if (loader) {
+        loader.classList.add('is-hidden');
+        loader.setAttribute('aria-hidden', 'true');
+      }
+      document.body.classList.add('loaded-done');
+    }, 280);
+  }
+
+  window.addEventListener('load', dismissLoader);
+  setTimeout(dismissLoader, 900);
+})();
+
+// ==========================================================================
+// CONTROLADOR DEL SIMULADOR GOOGLE MAPS NEXT-GEN (BILINGÜE)
+// ==========================================================================
+(function initMapsSimulatorNextGen(){
+  const toggleBad = document.getElementById('toggle-bad');
+  const toggleGood = document.getElementById('toggle-good');
+  const card = document.getElementById('map-card');
+  const rankBadge = document.getElementById('sim-rank-badge');
+  const metricTxt = document.getElementById('sim-metric-txt');
+  const statusTxt = document.getElementById('card-status-text');
+  const stars = document.getElementById('card-stars');
+  const ratingNum = document.getElementById('card-rating-num');
+  const reviewsCount = document.getElementById('card-reviews-count');
+  const pinBadge = document.getElementById('pin-badge');
+  const cardName = document.getElementById('card-name');
+
+  if (!toggleBad || !toggleGood || !card) return;
+
+  let currentGood = true;
+  function t(key){ const i=window.VENDO_I18N; return i ? i.t(key) : ''; }
+
+  function setMode(isGood) {
+    currentGood = isGood;
+    const mode = isGood ? 'good' : 'bad';
+    toggleGood.classList.toggle('active', isGood);
+    toggleGood.setAttribute('aria-selected', isGood ? 'true' : 'false');
+    toggleBad.classList.toggle('active', !isGood);
+    toggleBad.setAttribute('aria-selected', !isGood ? 'true' : 'false');
+    card.classList.toggle('mode-good', isGood);
+    card.classList.toggle('mode-bad', !isGood);
+
+    if (rankBadge) {
+      rankBadge.textContent = t('sim_' + mode + '_rank') || (isGood ? '#1 en la zona' : 'Sin posicionar (#38)');
+      rankBadge.style.background = isGood ? 'var(--lime)' : '#ea4335';
+      rankBadge.style.color = isGood ? 'var(--ink)' : '#fff';
+    }
+    if (stars) stars.textContent = t('sim_' + mode + '_stars') || (isGood ? '★★★★★' : '★★☆☆☆');
+    if (ratingNum) ratingNum.textContent = t('sim_' + mode + '_rating') || (isGood ? '4.9' : '2.1');
+    if (reviewsCount) reviewsCount.textContent = t('sim_' + mode + '_reviews') || (isGood ? '(68 opiniones verificadas)' : '(4 opiniones desatendidas)');
+    if (statusTxt) statusTxt.textContent = t('sim_' + mode + '_status') || (isGood ? 'Abierto ahora · Cierra 8:00 PM' : 'Podría estar cerrado · Sin horario');
+    if (pinBadge) {
+      pinBadge.textContent = t('sim_' + mode + '_badge') || (isGood ? '✓ Verificado en Google' : '⚠ Perfil No Verificado');
+      pinBadge.style.background = isGood ? 'var(--forest)' : '#ea4335';
+    }
+    if (metricTxt) metricTxt.innerHTML = t('sim_' + mode + '_metric') || (isGood ? '<strong>+142 personas</strong> solicitaron ruta o llamaron esta semana' : '<strong>⚠️ 85% de clientes</strong> eligen a tu competencia al no ver fotos ni WhatsApp');
+    if (cardName) cardName.textContent = t('sim_' + mode + '_name') || (isGood ? 'Tu Negocio' : 'Tu Negocio (Sin reclamar)');
+  }
+
+  toggleGood.addEventListener('click', () => setMode(true));
+  toggleBad.addEventListener('click', () => setMode(false));
+  document.addEventListener('vendo:langchange', () => setMode(currentGood));
+  setMode(true);
 })();
