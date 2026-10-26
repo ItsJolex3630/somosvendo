@@ -203,6 +203,23 @@ export async function postMovement(body: {
   return request<{ movement_id: string; category: string }>('/movements', { method: 'POST', body });
 }
 
+export async function putMovement(
+  id: string,
+  body: {
+    amount_usd?: number | string;
+    date?: string;
+    description?: string;
+    category?: string;
+    frequency?: MovementFrequency;
+    client_id?: string | null;
+  },
+) {
+  return request<{ ok: boolean; id: string; movement_date: string }>(`/movements/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body,
+  });
+}
+
 export async function deleteMovement(id: string) {
   return request<{ ok: boolean }>(`/movements/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }

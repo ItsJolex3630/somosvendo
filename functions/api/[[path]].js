@@ -824,6 +824,61 @@ route('DELETE', 'admin/crm/movements/:id', async ({ request, env, params }) => {
   return respond({ ok: true });
 });
 
+route('PUT', 'admin/crm/movements/:id', async ({ request, env, params }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const id = str(params.id, 40);
+  const existing = await queryOne(env, 'SELECT * FROM movements WHERE id = ? LIMIT 1', [id]);
+  if (!existing) return fail(404, 'Movimiento no encontrado');
+
+  const body = await readJson(request);
+  const amountCents = body.amount_usd !== undefined ? crmUsdToCents(body.amount_usd) : existing.amount_cents;
+  const movementDate = str(body.date || body.movement_date, 10) || existing.movement_date;
+  const description = str(body.description, 300) || existing.description;
+  const category = str(body.category, 40) || existing.category;
+  const frequency = str(body.frequency, 20) === 'recurring' ? 'recurring' : 'one_time';
+  const clientId = body.client_id !== undefined ? (str(body.client_id, 40) || null) : existing.client_id;
+
+  if (amountCents !== null && amountCents <= 0) {
+    return fail(400, 'El monto debe ser mayor a cero');
+  }
+
+  const updates = [
+    {
+      sql: `UPDATE movements
+               SET amount_cents = ?,
+                   movement_date = ?,
+                   description = ?,
+                   category = ?,
+                   frequency = ?,
+                   client_id = ?,
+                   updated_at = datetime('now')
+             WHERE id = ?`,
+      args: [amountCents, movementDate, description, category, frequency, clientId, id],
+    },
+    crmAuditStmt(String(auth.admin.id), 'movements', id, 'update', existing, {
+      amount_cents: amountCents,
+      movement_date: movementDate,
+      description,
+      category,
+      frequency,
+      client_id: clientId,
+    }),
+  ];
+
+  // Si tiene un pago a socio vinculado, actualizar también su fecha
+  if (existing.is_shared_profit) {
+    updates.push({
+      sql: "UPDATE movements SET movement_date = ?, updated_at = datetime('now') WHERE linked_movement_id = ?",
+      args: [movementDate, id],
+    });
+  }
+
+  await transaction(env, updates);
+  return respond({ ok: true, id, movement_date: movementDate });
+});
+
 route('GET', 'admin/crm/clients', async ({ request, env }) => {
   const auth = await crmAuth(request, env);
   if (!auth.ok) return fail(auth.status, auth.error);
@@ -1269,6 +1324,94 @@ route('DELETE', 'admin/crm/agent/history', async ({ request, env }) => {
   return respond({ ok: true });
 });
 
+// Helper para parsear expresiones temporales en lenguaje natural
+function extractMovementDate(rawText, fallbackIso) {
+  const text = String(rawText || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (d) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+
+  // 1. "del mes pasado", "mes anterior", "el mes pasado", "hace un mes"
+  if (/(?:del\s+|el\s+)?mes\s+(?:pasado|anterior)|hace\s+un\s+mes/i.test(text)) {
+    let year = now.getUTCFullYear();
+    let month = now.getUTCMonth(); // mes actual 0-11
+    if (month === 0) {
+      month = 11;
+      year -= 1;
+    } else {
+      month -= 1;
+    }
+    // Si dice a finales del mes pasado
+    if (/final(?:es)?/i.test(text)) {
+      const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      return `${year}-${pad(month + 1)}-${pad(lastDay)}`;
+    }
+    // Si dice a principios del mes pasado
+    if (/principio|inicio/i.test(text)) {
+      return `${year}-${pad(month + 1)}-01`;
+    }
+    // Por defecto: mismo día del mes pasado (ajustado si el mes tiene menos días)
+    const targetDay = Math.min(now.getUTCDate(), new Date(Date.UTC(year, month + 1, 0)).getUTCDate());
+    return `${year}-${pad(month + 1)}-${pad(targetDay)}`;
+  }
+
+  // 2. "ayer"
+  if (/\bayer\b/i.test(text)) {
+    const d = new Date(now.getTime() - 86400000);
+    return fmt(d);
+  }
+
+  // 3. "antier" o "anteayer"
+  if (/\b(antier|anteayer)\b/i.test(text)) {
+    const d = new Date(now.getTime() - 172800000);
+    return fmt(d);
+  }
+
+  // 4. "hace N dias"
+  const daysAgoMatch = text.match(/hace\s+(\d+)\s+dias?/i);
+  if (daysAgoMatch) {
+    const days = parseInt(daysAgoMatch[1], 10);
+    if (days > 0 && days < 365) {
+      const d = new Date(now.getTime() - days * 86400000);
+      return fmt(d);
+    }
+  }
+
+  // 5. Formato numérico YYYY-MM-DD
+  const isoMatch = text.match(/\b(202\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/);
+  if (isoMatch) return isoMatch[0];
+
+  // 6. Formato DD/MM/YYYY o DD-MM-YYYY
+  const dmyMatch = text.match(/\b(0?[1-9]|[12]\d|3[01])[/-](0?[1-9]|1[0-2])(?:[/-](202\d))?\b/);
+  if (dmyMatch) {
+    const day = pad(parseInt(dmyMatch[1], 10));
+    const m = pad(parseInt(dmyMatch[2], 10));
+    const y = dmyMatch[3] || String(now.getUTCFullYear());
+    return `${y}-${m}-${day}`;
+  }
+
+  // 7. Nombre de mes explícito: "el 15 de septiembre", "5 de agosto", etc.
+  const monthsEs = {
+    enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
+    julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12,
+  };
+  const namedMonthMatch = text.match(/(?:el\s+)?(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)/i);
+  if (namedMonthMatch) {
+    const day = pad(parseInt(namedMonthMatch[1], 10));
+    const mNum = monthsEs[namedMonthMatch[2].toLowerCase()];
+    if (mNum) {
+      const y = now.getUTCFullYear();
+      return `${y}-${pad(mNum)}-${day}`;
+    }
+  }
+
+  return fallbackIso;
+}
+
 route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
   const auth = await crmAuth(request, env);
   if (!auth.ok) return fail(auth.status, auth.error);
@@ -1448,6 +1591,61 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
   }
 
   // =========================================================================
+  // INTENCIÓN 3B: EDITAR / MODIFICAR FECHA O MONTO DE MOVIMIENTO EXISTENTE
+  // =========================================================================
+  const isEditIntent = /(cambia|modifica|edita|actualiza|corrige|ponle|pon)\b.*\b(fecha|monto|importe|concepto|dia)\b/i.test(textLower) ||
+    /(cambia|modifica|edita|actualiza)\s+(el\s+)?(ultimo\s+gasto|ultimo\s+ingreso|ultimo\s+movimiento)/i.test(textLower);
+
+  if (isEditIntent) {
+    const targetKind = /gasto|egreso/.test(textLower) ? 'expense' : /ingreso|cobro|pago/.test(textLower) ? 'income' : null;
+    const candidate = movements.find((m) => !targetKind || m.kind === targetKind);
+
+    if (candidate) {
+      const parsedDate = extractMovementDate(userMessage, null);
+      const newAmount = extractAmountUsd(userMessage);
+      const newAmountCents = newAmount ? Math.round(newAmount * 100) : candidate.amount_cents;
+      const previousDate = candidate.movement_date;
+      const finalDate = parsedDate || candidate.movement_date;
+
+      await execute(
+        env,
+        `UPDATE movements
+            SET movement_date = ?,
+                amount_cents = ?,
+                updated_at = datetime('now')
+          WHERE id = ?`,
+        [finalDate, newAmountCents, candidate.id],
+      );
+
+      // Si tiene movimiento espejo vinculado (pago socio), actualizar su fecha
+      await execute(
+        env,
+        "UPDATE movements SET movement_date = ?, updated_at = datetime('now') WHERE linked_movement_id = ?",
+        [finalDate, candidate.id],
+      );
+
+      // Actualizar en el snapshot en memoria
+      candidate.movement_date = finalDate;
+      candidate.amount_cents = newAmountCents;
+
+      actionsExecuted.push({
+        type: 'movement_updated',
+        label: `Actualizado: ${candidate.description || candidate.category} -> Fecha: ${finalDate} (${crmFormatUsd(newAmountCents)})`,
+      });
+
+      replyParts.push(
+        `🗓️ **¡Movimiento actualizado con éxito en Turso DB!**\n` +
+          `- **Concepto:** ${candidate.description || catLabels[candidate.category] || candidate.category}\n` +
+          `- **Nueva Fecha:** **${finalDate}** (antes: ${previousDate})\n` +
+          `- **Monto:** ${crmFormatUsd(newAmountCents)} USD\n\n` +
+          `Los balances mensuales y anuales han sido recalculados automáticamente.`
+      );
+    } else {
+      replyParts.push(`⚠️ No encontré ningún movimiento reciente para modificar.`);
+    }
+  }
+
+  // =========================================================================
   // INTENCIÓN 4: CREAR UN NUEVO CLIENTE
   // =========================================================================
   const createClientMatch = userMessage.match(/(?:crea|anade|añade|agrega|registra)\s+(?:al\s+|un\s+)?(?:nuevo\s+)?cliente\s+["']?([A-Za-zÁÉÍÓÚáéíóúÑñ0-9 .&-]{2,50})["']?/i);
@@ -1490,14 +1688,14 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
     (/(registra|anade|añade|agrega|anota|marca)\b.*\b(ingreso|ganancia|cobro|pago|venta|abono)/i.test(textLower) ||
       /\b(ingreso|ganancia|cobro|cobramos|ganamos|nos pago|pago|abono|venta)\b.*(?:\$|\d)/i.test(textLower));
 
-  if (amountUsd && (isExpenseIntent || isIncomeIntent)) {
+  if (amountUsd && !isEditIntent && (isExpenseIntent || isIncomeIntent)) {
     const kind = isExpenseIntent ? 'expense' : 'income';
     const frequency = /(fijo|mensual|recurrente|todos los meses|suscripcion)/i.test(textLower) ? 'recurring' : 'one_time';
     const category = kind === 'expense' ? inferExpenseCategory(textLower) : inferIncomeCategory(textLower);
     const mentionedClient = findMentionedClient(textLower);
     const amountCents = Math.round(amountUsd * 100);
     const movId = crmId();
-    const today = crmToday();
+    const targetDate = extractMovementDate(userMessage, crmToday());
 
     // Limpiar descripción legible
     let desc = userMessage
@@ -1513,7 +1711,7 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
       env,
       `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, created_by, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))`,
-      [movId, kind, category, frequency, amountCents, desc, today, mentionedClient ? mentionedClient.id : null, String(auth.admin.id)],
+      [movId, kind, category, frequency, amountCents, desc, targetDate, mentionedClient ? mentionedClient.id : null, String(auth.admin.id)],
     );
 
     // Actualizar array en memoria para que el cálculo inferior ya incluya este movimiento
@@ -1524,7 +1722,7 @@ route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
       frequency,
       amount_cents: amountCents,
       description: desc,
-      movement_date: today,
+      movement_date: targetDate,
       client_id: mentionedClient ? mentionedClient.id : null,
       client_name: mentionedClient ? mentionedClient.full_name : null,
     });

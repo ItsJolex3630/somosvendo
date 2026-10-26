@@ -15,6 +15,7 @@ import {
   postCustomCategory,
   postMovement,
   postPayment,
+  putMovement,
   putSettings,
 } from '@/lib/vendo/api';
 import {
@@ -79,6 +80,17 @@ type Store = {
   addService: (clientId: string, input: NewServiceInput) => Promise<void>;
   addTransaction: (input: NewTransactionInput) => Promise<void>;
   removeMovement: (id: string) => Promise<void>;
+  updateMovement: (
+    id: string,
+    input: {
+      amount_usd?: number | string;
+      date?: string;
+      description?: string;
+      category?: string;
+      frequency?: MovementFrequency;
+      client_id?: string | null;
+    },
+  ) => Promise<void>;
   addCustomCategory: (input: { kind: 'income' | 'expense'; label: string; frequency_default?: MovementFrequency }) => Promise<CustomCategory>;
   markPaid: (cobro: Cobro, date?: string) => Promise<void>;
   saveSettings: (input: Partial<SettingsFull>) => Promise<void>;
@@ -254,6 +266,11 @@ export function VendoProvider({ children }: { children: ReactNode }) {
     mutationFn: (id: string) => deleteMovement(id),
     onSuccess: invalidateCore,
   });
+  const updateMovementMutation = useMutation({
+    mutationFn: ({ id, input }: { id: string; input: Parameters<typeof putMovement>[1] }) =>
+      putMovement(id, input),
+    onSuccess: invalidateCore,
+  });
   const addCategoryMutation = useMutation({
     mutationFn: (input: { kind: 'income' | 'expense'; label: string; frequency_default?: MovementFrequency }) =>
       postCustomCategory(input),
@@ -303,6 +320,9 @@ export function VendoProvider({ children }: { children: ReactNode }) {
     },
     removeMovement: async (id) => {
       await removeMovementMutation.mutateAsync(id);
+    },
+    updateMovement: async (id, input) => {
+      await updateMovementMutation.mutateAsync({ id, input });
     },
     addCustomCategory: async (input) => {
       const res = await addCategoryMutation.mutateAsync(input);

@@ -1,8 +1,9 @@
 import { ArrowDownLeft, ArrowUpRight, Wallet, Plus, Download, CalendarDays, MoreHorizontal, Trash2, Sparkles } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useVendo } from './store';
-import { money, shortDate, exportCsv, type Transaction } from '@/lib/vendo/data';
+import { ALL_CATEGORIES, categoryLabel, money, shortDate, exportCsv, type MovementFrequency, type Transaction } from '@/lib/vendo/data';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -137,8 +138,45 @@ export function Status({ status }: { status: Transaction['status'] }) {
 }
 
 export function TransactionTable({ rows }: { rows: Transaction[] }) {
-  const { clients, settings, removeMovement } = useVendo();
+  const { clients, settings, removeMovement, updateMovement, customCategories } = useVendo();
   const [selected, setSelected] = useState<Transaction | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDate, setEditDate] = useState('');
+  const [editAmount, setEditAmount] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editFreq, setEditFreq] = useState<MovementFrequency>('one_time');
+  const [saving, setSaving] = useState(false);
+
+  const openModal = (t: Transaction) => {
+    setSelected(t);
+    setIsEditing(false);
+    setEditDate(t.date);
+    setEditAmount(t.amount.toFixed(2));
+    setEditDesc(t.description);
+    setEditCategory(t.category);
+    setEditFreq(t.frequency || 'one_time');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      await updateMovement(selected.id, {
+        date: editDate,
+        amount_usd: editAmount,
+        description: editDesc,
+        category: editCategory,
+        frequency: editFreq,
+      });
+      toast.success('Movimiento actualizado con éxito');
+      setSelected(null);
+    } catch (err) {
+      toast.error((err as Error).message || 'Error al actualizar');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDelete = async (t: Transaction) => {
     try {
@@ -201,7 +239,7 @@ export function TransactionTable({ rows }: { rows: Transaction[] }) {
                       size="icon"
                       title="Ver o eliminar movimiento"
                       aria-label={`Ver ${t.id}`}
-                      onClick={() => setSelected(t)}
+                      onClick={() => openModal(t)}
                     >
                       <MoreHorizontal size={15} />
                     </Button>
@@ -215,12 +253,12 @@ export function TransactionTable({ rows }: { rows: Transaction[] }) {
         <div className="empty">No hay movimientos con estos filtros.</div>
       )}
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
-        <DialogContent className="max-w-[calc(100%-32px)] sm:max-w-lg">
+        <DialogContent className="max-w-[calc(100%-32px)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalle del movimiento</DialogTitle>
+            <DialogTitle>{isEditing ? 'Editar movimiento' : 'Detalle del movimiento'}</DialogTitle>
             <DialogDescription>ID: {selected?.id}</DialogDescription>
           </DialogHeader>
-          {selected && (
+          {selected && !isEditing ? (
             <div className="space-y-5">
               <div className="flex items-baseline justify-between">
                 <p className={`text-2xl font-mono ${selected.type === 'Ingreso' ? 'text-primary' : 'text-destructive'}`}>
@@ -235,14 +273,56 @@ export function TransactionTable({ rows }: { rows: Transaction[] }) {
               <p className="text-muted-foreground text-xs">
                 {selected.description} · {selected.service}
               </p>
-              <div className="flex justify-between items-center pt-2 border-t border-border">
+              <div className="flex flex-wrap justify-between items-center gap-2 pt-3 border-t border-border">
                 <span className="text-xs text-muted-foreground">{shortDate(selected.date)}</span>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(selected)}>
-                  <Trash2 size={14} /> Eliminar movimiento
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                    Editar datos / fecha
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(selected)}>
+                    <Trash2 size={14} /> Eliminar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : selected && isEditing ? (
+            <div className="space-y-4 pt-1">
+              <label className="field">
+                Fecha del movimiento
+                <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} required />
+              </label>
+              <label className="field">
+                Concepto / Descripción
+                <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} required />
+              </label>
+              <div className="form-columns">
+                <label className="field">
+                  Importe (USD)
+                  <Input type="number" step="0.01" min="0.01" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} required />
+                </label>
+                <label className="field">
+                  Frecuencia
+                  <select value={editFreq} onChange={(e) => setEditFreq(e.target.value as MovementFrequency)}>
+                    <option value="one_time">⚡ Único</option>
+                    <option value="recurring">🔁 Fijo mensual</option>
+                  </select>
+                </label>
+              </div>
+              <label className="field">
+                Categoría
+                <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)}>
+                  {ALL_CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c, customCategories)}</option>)}
+                  {customCategories.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+                </select>
+              </label>
+              <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Cancelar</Button>
+                <Button size="sm" onClick={handleSaveEdit} disabled={saving}>
+                  {saving ? 'Guardando...' : 'Guardar cambios'}
                 </Button>
               </div>
             </div>
-          )}
+          ) : null}
         </DialogContent>
       </Dialog>
     </>

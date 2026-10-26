@@ -120,14 +120,27 @@ export function TransactionsPage({ billing = false }: { billing?: boolean }) {
             </Button>
           ))}
         </div>
-        <div className="flex gap-2 min-w-0">
-          <Input value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} placeholder="Buscar..." aria-label="Buscar en movimientos" className="max-w-44" />
-          <select aria-label="Filtrar por categoría" value={category} onChange={(e) => setCategory(e.target.value)}>
+        <div className="filter-inputs flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
+          <Input
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder="Buscar..."
+            aria-label="Buscar en movimientos"
+            className="flex-1 sm:max-w-44 min-w-[120px]"
+          />
+          <select
+            aria-label="Filtrar por categoría"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="flex-1 sm:w-auto min-w-0 max-w-full text-xs"
+          >
             <option value="Todas">Todas las categorías</option>
             {ALL_CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c, customCategories)}</option>)}
             {customCategories.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
           </select>
-          <Button variant="secondary" size="sm" onClick={() => exportCsv(rows, clients)}><Download />CSV</Button>
+          <Button variant="secondary" size="sm" className="shrink-0" onClick={() => exportCsv(rows, clients)}>
+            <Download size={14} /> CSV
+          </Button>
         </div>
       </div>
       <section className="panel transactions-panel"><TransactionTable rows={rows} /></section>

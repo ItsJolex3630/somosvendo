@@ -125,7 +125,7 @@ export function DoAdminAssistant() {
         type="button"
         onClick={() => setDoOpen(!doOpen)}
         aria-label="Abrir Agente Do IA"
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full bg-primary px-4 py-2.5 text-primary-foreground shadow-xl transition-transform hover:scale-105 active:scale-95 border border-white/20"
+        className="fixed md:bottom-5 bottom-[calc(68px+env(safe-area-inset-bottom))] right-4 z-50 flex items-center gap-2.5 rounded-full bg-primary px-3.5 py-2.5 text-primary-foreground shadow-xl transition-transform hover:scale-105 active:scale-95 border border-white/20"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#012619]">
           <DoMascotAvatar size={24} />
