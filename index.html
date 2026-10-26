@@ -16,9 +16,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
-<link rel="stylesheet" href="assets/css/main.css?v=do-clients-20261025">
+<link rel="stylesheet" href="assets/css/main.css?v=do-concierge-20261026">
 </head>
 <body>
+<div class="scroll-progress-bar" id="scroll-progress" aria-hidden="true"></div>
 <div class="wrap">
 <nav><a class="logo" href="#" aria-label="VENDO"></a><div class="nav-actions"><a class="nav-link" href="#conecta" data-i18n="nav_conecta">Conecta</a><a class="btn ghost open-quote-modal" data-i18n="nav_contact" data-i18n-href="wa" href="https://wa.me/584149428999?text=Hola%2C%20me%20gustar%C3%ADa%20consultar%20con%20el%20asesor%20de%20VENDO%20los%20planes%20y%20precios%20para%20mi%20negocio." target="_blank" rel="noopener">Escríbenos</a>
 
@@ -35,8 +36,32 @@
 <p data-i18n="hero_p">Páginas web y Google Maps optimizado para comercios de San Diego, Valencia y todo Carabobo. Sin promesas infladas: trabajo claro y resultados que puedes comprobar.</p>
 <div class="cta"><a class="btn open-quote-modal" data-i18n="hero_cta_advisor" data-i18n-href="wa" href="https://wa.me/584149428999?text=Hola%2C%20me%20gustar%C3%ADa%20consultar%20con%20el%20asesor%20de%20VENDO%20los%20planes%20y%20precios%20para%20mi%20negocio." target="_blank" rel="noopener">Hablar con un asesor</a><a class="btn ghost" data-i18n="hero_cta_services" href="#servicios">Ver servicios</a></div>
 </div>
-<button class="do" type="button" aria-label="Conocer los servicios de VENDO" data-i18n-aria="do_action"><div class="bub" data-i18n="do_bubble" aria-live="polite">Soy Do. Te ayudo a optimizar tu marca.</div>
-<div class="do-character"><img alt="Do, la mascota de VENDO" data-i18n-alt="do_alt" src="assets/pet-do.svg"><span class="do-eyes" aria-hidden="true"><span></span><span></span></span></div></button>
+<div class="do-stage" id="hero-do-stage">
+  <button class="do" id="hero-do-btn" type="button" aria-label="Abrir asistente interactivo Do" data-i18n-aria="do_action" data-mood="idle">
+    <div class="bub" id="hero-do-bubble" aria-live="polite">
+      <span class="bub-status-dot" aria-hidden="true"></span>
+      <span class="bub-text" data-i18n="do_bubble">Soy Do. Te ayudo a que tu negocio se encuentre y venda.</span>
+    </div>
+    <div class="do-character">
+      <div class="do-aura" aria-hidden="true"></div>
+      <svg class="do-svg" viewBox="0 0 731 1031" role="img" aria-label="Do, el asistente de VENDO" data-i18n-aria="do_alt">
+        <g transform="translate(-156.34 -31.33)">
+          <path class="do-svg-body" d="M614.34,536.33c9-11,21-17,33-25,4-3,9-4,13-6,72-33,149-46,227-50-91-21-183-34-276-43-1-10,2-19,5-28,13-46,35-87,61-126-9,14-21,24-31,39-2,2-4,3-6,5a20.92,20.92,0,0,1-4,6c-1,1-2,1-3,2-2,2-2,4-4,6a43.49,43.49,0,0,0-7,6c-6,9-14,13-21,21-1,1-3,1-4,2-1,3-4,3-6,5,0,1-1,1-1,2-4,3-7,4-11,7-1,0-3,1-4,1s-1,2-2,2c-6,2-12,6-18,3-4-1-7-5-10-9a3.67,3.67,0,0,0-1-3c-27-43-32-93-36-141-6-61-5-121,1-181-9,4-13,12-16,20-6,12-9,23-12,36v4c-1,4-2,7-2,11-3,12-4,24-6,37-3,20-2,39-4,59-1,15,1,31-1,46v27c2,29,3,58-2,88-1,5-2,10-6,10-22,3-41-11-60-23-2-1-3-1-5-2-29-20-55-38-79-62,17,38,38,72,60,109,1,2,1,3,2,5,2,3,4,5,6,8,6,12,14,23,21,34-27,14-56,20-87,27-1,0-3,2-4,2a1263.36,1263.36,0,0,1-158,25c65,7,129,11,194,18,18,2,37,2,54,10l3,3c1,2,1,5,1,7,1,48-19,92-35,137a37,37,0,0,0-5,11c24-28,45-57,76-80a100.92,100.92,0,0,1,15-7c7-2,12,4,14,10,2-1,1,2,1,2,34,82,44,168,54,256,2,19,2,37,4,56,1,20,1,39,2,59,1,29-1,59-2,88,27-153,36-308,25-463,20-7,41-1,61,5a389.2,389.2,0,0,1,110,50h2a795.38,795.38,0,0,1-95-89c-1-2-3-4-5-6-2-3-5-6-7-9-3-5-7-9-9-14Z"/>
+          <g class="do-svg-face">
+            <path class="do-svg-eye do-svg-eye-l" d="M490.34,503.33c-12,2-23,4-35,5-4-31-7-61-11-92,12-2,23-3,35-5,3,31,7,61,11,92Z"/>
+            <path class="do-svg-eye do-svg-eye-r" d="M574.34,490.33c-12,2-24,3-36,6-4-30-8-61-11-91,12-3,24-3,36-5,2,30,7,60,11,90Z"/>
+            <path class="do-svg-mouth" d="M496.34,513.33c15-2,29-6,44-7-6,6-11,13-20,15s-17-3-24-8Z"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </button>
+  <div class="do-quick-pills" aria-label="Preguntas rápidas para Do" data-i18n-aria="do_quick_aria">
+    <button type="button" class="do-pill" data-do-intent="maps" data-i18n="do_pill_maps">📍 Salir en Google Maps</button>
+    <button type="button" class="do-pill" data-do-intent="web" data-i18n="do_pill_web">🌐 Crear mi web</button>
+    <button type="button" class="do-pill" data-do-intent="photo" data-i18n="do_pill_photo">📸 Fotos de producto</button>
+  </div>
+</div>
 </header>
 </div>
 
@@ -128,11 +153,53 @@
 </div></section>
 
 <section class="svc" id="servicios"><div class="wrap">
-<h2 data-i18n="services_h2">Lo que hacemos por tu negocio</h2>
-<div class="row"><h3 data-i18n="service1_h3">Páginas web</h3><p data-i18n="service1_p">Sitio rápido y pensado para el celular, con tu catálogo, tus datos de contacto y un botón directo a WhatsApp.</p></div>
-<div class="row"><h3 data-i18n="service2_h3">Google Maps</h3><p data-i18n="service2_p">Perfil de Empresa creado, verificado y optimizado para que los vecinos y visitantes te encuentren primero.</p></div>
-<div class="row"><h3 data-i18n="service3_h3">Marketing local</h3><p data-i18n="service3_p">Reseñas reales, WhatsApp Business, catálogos digitales y embudos de venta simples. También te ayudamos a vender en Yummy cuando aplica.</p></div>
-<div class="row"><h3 data-i18n="service4_h3">Fotografía comercial y de producto</h3><p data-i18n="service4_p">En alianza exclusiva con el fotógrafo profesional <strong>Ali Gómez</strong>, capturamos tus platos, productos, instalaciones y equipo con calidad editorial. Las fotos perfectas para que tu página web, tu menú digital y tu perfil de Google Maps conviertan el doble.</p></div>
+<div class="svc-head">
+  <span class="tag-kicker" data-i18n="services_tag">SOLUCIONES LLAVE EN MANO · IMPACTO COMERCIAL</span>
+  <h2 data-i18n="services_h2">Lo que hacemos por tu negocio</h2>
+</div>
+<div class="row" data-service-row="web">
+  <div class="row-title-wrap">
+    <span class="row-num" aria-hidden="true">01</span>
+    <h3 data-i18n="service1_h3">Páginas web</h3>
+  </div>
+  <div class="row-body">
+    <p data-i18n="service1_p">Sitio rápido y pensado para el celular, con tu catálogo, tus datos de contacto y un botón directo a WhatsApp.</p>
+    <button type="button" class="row-action-btn open-quote-modal" data-preset-service="web"><span data-i18n="service1_cta">Cotizar página web</span> <span aria-hidden="true">→</span></button>
+  </div>
+</div>
+<div class="row" data-service-row="maps">
+  <div class="row-title-wrap">
+    <span class="row-num" aria-hidden="true">02</span>
+    <h3 data-i18n="service2_h3">Google Maps</h3>
+  </div>
+  <div class="row-body">
+    <p data-i18n="service2_p">Perfil de Empresa creado, verificado y optimizado para que los vecinos y visitantes te encuentren primero.</p>
+    <button type="button" class="row-action-btn open-quote-modal" data-preset-service="maps"><span data-i18n="service2_cta">Optimizar mi Google Maps</span> <span aria-hidden="true">→</span></button>
+  </div>
+</div>
+<div class="row" data-service-row="paquete">
+  <div class="row-title-wrap">
+    <span class="row-num" aria-hidden="true">03</span>
+    <h3 data-i18n="service3_h3">Marketing local</h3>
+  </div>
+  <div class="row-body">
+    <p data-i18n="service3_p">Reseñas reales, WhatsApp Business, catálogos digitales y embudos de venta simples. También te ayudamos a vender en Yummy cuando aplica.</p>
+    <button type="button" class="row-action-btn open-quote-modal" data-preset-service="paquete"><span data-i18n="service3_cta">Consultar plan completo</span> <span aria-hidden="true">→</span></button>
+  </div>
+</div>
+<div class="row row-featured-partner" data-service-row="foto">
+  <div class="row-title-wrap">
+    <span class="row-num" aria-hidden="true">04</span>
+    <div>
+      <span class="partner-pill" data-i18n="service4_badge">ALIANZA EXCLUSIVA · ALI GÓMEZ</span>
+      <h3 data-i18n="service4_h3">Fotografía comercial y de producto</h3>
+    </div>
+  </div>
+  <div class="row-body">
+    <p data-i18n="service4_p">En alianza exclusiva con el fotógrafo profesional <strong>Ali Gómez</strong>, capturamos tus platos, productos, instalaciones y equipo con calidad editorial. Las fotos perfectas para que tu página web, tu menú digital y tu perfil de Google Maps conviertan el doble.</p>
+    <button type="button" class="row-action-btn open-quote-modal" data-preset-service="foto"><span data-i18n="service4_cta">Agendar producción visual</span> <span aria-hidden="true">→</span></button>
+  </div>
+</div>
 </div></section>
 
 <!-- SECCIÓN VÉNDO CONECTA · SERVICIO MENSUAL DE FIDELIZACIÓN -->
@@ -482,6 +549,88 @@ Google Search Console
 <span data-i18n="footer_geo">San Diego &amp; Valencia · Carabobo, Venezuela</span>
 </div></footer>
 
+<!-- ASISTENTE INTERACTIVO DO CONCIERGE -->
+<aside class="do-concierge" id="do-concierge" aria-label="Asistente virtual Do" data-i18n-aria="aria_do_concierge">
+  <!-- Panel Expandible del Asistente -->
+  <div class="do-panel" id="do-panel" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="do-panel-title">
+    <div class="do-panel-head">
+      <div class="do-panel-identity">
+        <div class="do-mini-avatar" aria-hidden="true">
+          <svg viewBox="0 0 731 1031" class="do-svg">
+            <g transform="translate(-156.34 -31.33)">
+              <path class="do-svg-body" d="M614.34,536.33c9-11,21-17,33-25,4-3,9-4,13-6,72-33,149-46,227-50-91-21-183-34-276-43-1-10,2-19,5-28,13-46,35-87,61-126-9,14-21,24-31,39-2,2-4,3-6,5a20.92,20.92,0,0,1-4,6c-1,1-2,1-3,2-2,2-2,4-4,6a43.49,43.49,0,0,0-7,6c-6,9-14,13-21,21-1,1-3,1-4,2-1,3-4,3-6,5,0,1-1,1-1,2-4,3-7,4-11,7-1,0-3,1-4,1s-1,2-2,2c-6,2-12,6-18,3-4-1-7-5-10-9a3.67,3.67,0,0,0-1-3c-27-43-32-93-36-141-6-61-5-121,1-181-9,4-13,12-16,20-6,12-9,23-12,36v4c-1,4-2,7-2,11-3,12-4,24-6,37-3,20-2,39-4,59-1,15,1,31-1,46v27c2,29,3,58-2,88-1,5-2,10-6,10-22,3-41-11-60-23-2-1-3-1-5-2-29-20-55-38-79-62,17,38,38,72,60,109,1,2,1,3,2,5,2,3,4,5,6,8,6,12,14,23,21,34-27,14-56,20-87,27-1,0-3,2-4,2a1263.36,1263.36,0,0,1-158,25c65,7,129,11,194,18,18,2,37,2,54,10l3,3c1,2,1,5,1,7,1,48-19,92-35,137a37,37,0,0,0-5,11c24-28,45-57,76-80a100.92,100.92,0,0,1,15-7c7-2,12,4,14,10,2-1,1,2,1,2,34,82,44,168,54,256,2,19,2,37,4,56,1,20,1,39,2,59,1,29-1,59-2,88,27-153,36-308,25-463,20-7,41-1,61,5a389.2,389.2,0,0,1,110,50h2a795.38,795.38,0,0,1-95-89c-1-2-3-4-5-6-2-3-5-6-7-9-3-5-7-9-9-14Z"/>
+              <g class="do-svg-face">
+                <path class="do-svg-eye do-svg-eye-l" d="M490.34,503.33c-12,2-23,4-35,5-4-31-7-61-11-92,12-2,23-3,35-5,3,31,7,61,11,92Z"/>
+                <path class="do-svg-eye do-svg-eye-r" d="M574.34,490.33c-12,2-24,3-36,6-4-30-8-61-11-91,12-3,24-3,36-5,2,30,7,60,11,90Z"/>
+                <path class="do-svg-mouth" d="M496.34,513.33c15-2,29-6,44-7-6,6-11,13-20,15s-17-3-24-8Z"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <strong id="do-panel-title" data-i18n="do_panel_title">Do · Asistente VENDO</strong>
+          <span class="do-panel-sub" data-i18n="do_panel_sub">Diagnóstico rápido para tu negocio</span>
+        </div>
+      </div>
+      <button type="button" class="do-panel-close" id="do-panel-close" aria-label="Cerrar asistente" data-i18n-aria="aria_modal_close">×</button>
+    </div>
+
+    <div class="do-panel-body">
+      <div class="do-chat-msg" id="do-chat-reply" aria-live="polite" data-i18n="do_panel_greeting">
+        ¡Hola! Soy Do. ¿Qué es lo más urgente hoy para tu negocio? Elige una opción y te muestro la ruta exacta:
+      </div>
+
+      <div class="do-options-list" role="group" aria-label="Opciones de diagnóstico">
+        <button type="button" class="do-opt-btn" data-do-topic="maps">
+          <span class="do-opt-ico" aria-hidden="true">📍</span>
+          <span data-i18n="do_opt_maps">Aparecer primero en Google Maps</span>
+        </button>
+        <button type="button" class="do-opt-btn" data-do-topic="web">
+          <span class="do-opt-ico" aria-hidden="true">🌐</span>
+          <span data-i18n="do_opt_web">Tener mi página web con catálogo</span>
+        </button>
+        <button type="button" class="do-opt-btn" data-do-topic="conecta">
+          <span class="do-opt-ico" aria-hidden="true">🔁</span>
+          <span data-i18n="do_opt_conecta">Hacer que mis clientes vuelvan (Club VIP)</span>
+        </button>
+        <button type="button" class="do-opt-btn" data-do-topic="photo">
+          <span class="do-opt-ico" aria-hidden="true">📸</span>
+          <span data-i18n="do_opt_photo">Fotografía profesional (Ali Gómez)</span>
+        </button>
+      </div>
+
+      <div class="do-panel-actions" id="do-panel-actions">
+        <button type="button" class="btn do-cta-primary open-quote-modal" id="do-modal-trigger" data-preset-service="paquete" data-i18n="do_cta_quote">
+          Armar mi cotización ahora
+        </button>
+        <a href="#clientes" class="btn ghost do-cta-secondary" id="do-scroll-trigger" data-i18n="do_cta_cases">
+          Ver casos reales
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón Flotante Disparador (Dock) -->
+  <div class="do-dock">
+    <button type="button" class="do-dock-toast" id="do-dock-toast" aria-label="Abrir consejo de Do">
+      <span id="do-dock-toast-text" data-i18n="do_toast_default">¿Evaluamos tu negocio?</span>
+    </button>
+    <button type="button" class="do-dock-btn" id="do-dock-btn" aria-expanded="false" aria-controls="do-panel" aria-label="Hablar con Do, asistente de VENDO" data-i18n-aria="do_action">
+      <svg viewBox="0 0 731 1031" class="do-svg" aria-hidden="true">
+        <g transform="translate(-156.34 -31.33)">
+          <path class="do-svg-body" d="M614.34,536.33c9-11,21-17,33-25,4-3,9-4,13-6,72-33,149-46,227-50-91-21-183-34-276-43-1-10,2-19,5-28,13-46,35-87,61-126-9,14-21,24-31,39-2,2-4,3-6,5a20.92,20.92,0,0,1-4,6c-1,1-2,1-3,2-2,2-2,4-4,6a43.49,43.49,0,0,0-7,6c-6,9-14,13-21,21-1,1-3,1-4,2-1,3-4,3-6,5,0,1-1,1-1,2-4,3-7,4-11,7-1,0-3,1-4,1s-1,2-2,2c-6,2-12,6-18,3-4-1-7-5-10-9a3.67,3.67,0,0,0-1-3c-27-43-32-93-36-141-6-61-5-121,1-181-9,4-13,12-16,20-6,12-9,23-12,36v4c-1,4-2,7-2,11-3,12-4,24-6,37-3,20-2,39-4,59-1,15,1,31-1,46v27c2,29,3,58-2,88-1,5-2,10-6,10-22,3-41-11-60-23-2-1-3-1-5-2-29-20-55-38-79-62,17,38,38,72,60,109,1,2,1,3,2,5,2,3,4,5,6,8,6,12,14,23,21,34-27,14-56,20-87,27-1,0-3,2-4,2a1263.36,1263.36,0,0,1-158,25c65,7,129,11,194,18,18,2,37,2,54,10l3,3c1,2,1,5,1,7,1,48-19,92-35,137a37,37,0,0,0-5,11c24-28,45-57,76-80a100.92,100.92,0,0,1,15-7c7-2,12,4,14,10,2-1,1,2,1,2,34,82,44,168,54,256,2,19,2,37,4,56,1,20,1,39,2,59,1,29-1,59-2,88,27-153,36-308,25-463,20-7,41-1,61,5a389.2,389.2,0,0,1,110,50h2a795.38,795.38,0,0,1-95-89c-1-2-3-4-5-6-2-3-5-6-7-9-3-5-7-9-9-14Z"/>
+          <g class="do-svg-face">
+            <path class="do-svg-eye do-svg-eye-l" d="M490.34,503.33c-12,2-23,4-35,5-4-31-7-61-11-92,12-2,23-3,35-5,3,31,7,61,11,92Z"/>
+            <path class="do-svg-eye do-svg-eye-r" d="M574.34,490.33c-12,2-24,3-36,6-4-30-8-61-11-91,12-3,24-3,36-5,2,30,7,60,11,90Z"/>
+            <path class="do-svg-mouth" d="M496.34,513.33c15-2,29-6,44-7-6,6-11,13-20,15s-17-3-24-8Z"/>
+          </g>
+        </g>
+      </svg>
+      <span class="do-dock-badge" aria-hidden="true">1</span>
+    </button>
+  </div>
+</aside>
+
 <!-- MODAL DE COTIZACIÓN PREVIA A WHATSAPP -->
 <div id="quote-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal-card">
@@ -525,6 +674,7 @@ Google Search Console
           <button type="button" class="chip-btn" data-value="web" aria-pressed="false"><span data-i18n="chip_svc_web">🌐 Página web con catálogo</span></button>
           <button type="button" class="chip-btn" data-value="maps" aria-pressed="false"><span data-i18n="chip_svc_maps">📍 Perfil en Google Maps</span></button>
           <button type="button" class="chip-btn" data-value="conecta" aria-pressed="false"><span data-i18n="chip_svc_conecta">🔁 VÉNDO Conecta (Servicio de Fidelización)</span></button>
+          <button type="button" class="chip-btn" data-value="foto" aria-pressed="false"><span data-i18n="chip_svc_foto">📸 Fotografía Profesional (Ali Gómez)</span></button>
         </div>
         <input type="hidden" id="selected-service" value="paquete">
       </div>
@@ -579,7 +729,7 @@ Google Search Console
   </div>
 </div>
 
-<script src="assets/js/main.js?v=clients-real-20261025"></script>
+<script src="assets/js/main.js?v=do-concierge-20261026"></script>
 
 </body>
 </html>

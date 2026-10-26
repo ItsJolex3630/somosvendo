@@ -118,12 +118,41 @@ hero_h1:'Que tu negocio se encuentre, se vea y venda.',
 hero_p:'Páginas web y Google Maps optimizado para comercios de San Diego, Valencia y todo Carabobo. Sin promesas infladas: trabajo claro y resultados que puedes comprobar.',
 hero_cta_advisor:'Hablar con un asesor',
 hero_cta_services:'Ver servicios',
-do_bubble:'Soy Do. Te ayudo a optimizar tu marca.',
-do_alt:'Do, la mascota de VENDO',
-do_action:'Conocer los servicios de VENDO',
+do_bubble:'Soy Do. Te ayudo a que tu negocio se encuentre y venda.',
+do_alt:'Do, el asistente de VENDO',
+do_action:'Abrir asistente interactivo Do',
+do_quick_aria:'Preguntas rápidas para Do',
+do_pill_maps:'📍 Salir en Google Maps',
+do_pill_web:'🌐 Crear mi web',
+do_pill_photo:'📸 Fotos de producto',
+aria_do_concierge:'Asistente virtual Do',
+do_panel_title:'Do · Asistente VENDO',
+do_panel_sub:'Diagnóstico rápido para tu negocio',
+do_panel_greeting:'¡Hola! Soy Do. ¿Qué es lo más urgente hoy para tu negocio? Elige una opción y te muestro la ruta exacta:',
+do_opt_maps:'Aparecer primero en Google Maps',
+do_opt_web:'Tener mi página web con catálogo',
+do_opt_conecta:'Hacer que mis clientes vuelvan (Club VIP)',
+do_opt_photo:'Fotografía profesional (Ali Gómez)',
+do_reply_maps:'¡Excelente paso! Creamos, verificamos y posicionamos tu ficha en Google Maps con botón directo a WhatsApp y estrategia de reseñas reales.',
+do_reply_web:'¡Vamos por ello! Desarrollamos tu web ultra rápida con dominio propio (.com), catálogo interactivo y pedidos directos a tu WhatsApp con 0% comisiones.',
+do_reply_conecta:'¡Retención pura! Con VÉNDO Conecta instalamos tu propio Club VIP con carnet digital y gestionamos la comunicación mensual para generar recompras.',
+do_reply_photo:'¡Imagen que vende! Con nuestro aliado exclusivo Ali Gómez realizamos la sesión fotográfica de tus productos, platos e instalaciones.',
+do_cta_quote:'Armar mi cotización ahora',
+do_cta_cases:'Ver casos reales',
+do_toast_default:'¿Evaluamos tu negocio?',
+do_toast_maps:'📍 ¿Tu local ya sale en Google Maps?',
+do_toast_services:'✨ Web, Maps, Conecta o Fotografía',
+do_toast_conecta:'🔁 Tus clientes de vuelta cada mes',
+do_toast_clients:'🚀 Mira las marcas que ya digitalizamos',
 do_msg_whatsapp:'Soy Do. ¿Hablamos por WhatsApp para tu negocio? 🚀',
 do_msg_maps:'Tu negocio en Google Maps en tiempo récord 📍',
 do_msg_services:'Diseño moderno sin plantillas rotas ✨',
+services_tag:'SOLUCIONES LLAVE EN MANO · IMPACTO COMERCIAL',
+service1_cta:'Cotizar página web',
+service2_cta:'Optimizar mi Google Maps',
+service3_cta:'Consultar plan completo',
+service4_badge:'ALIANZA EXCLUSIVA · ALI GÓMEZ',
+service4_cta:'Agendar producción visual',
 maps_tag:'SIMULADOR EN VIVO · IMPACTO INMEDIATO',
 maps_h2:'La diferencia entre que te encuentren o pasen de largo.',
 maps_p:'El 82% de las personas en San Diego y Valencia buscan en Google antes de salir a comprar o pedir delivery. Un perfil abandonado ahuyenta a los clientes; un perfil optimizado genera confianza y ventas inmediatas.',
@@ -292,10 +321,12 @@ chip_svc_paquete:'🚀 Paquete Completo (Web + Maps)',
 chip_svc_web:'🌐 Página web con catálogo',
 chip_svc_maps:'📍 Perfil en Google Maps',
 chip_svc_conecta:'🔁 VÉNDO Conecta (Servicio de Fidelización)',
+chip_svc_foto:'📸 Fotografía Profesional (Ali Gómez)',
 val_paquete:'Paquete Completo (Web + Maps)',
 val_web:'Página web con catálogo',
 val_maps:'Perfil en Google Maps',
 val_conecta:'VÉNDO Conecta (Servicio de Fidelización)',
+val_foto:'Fotografía Comercial y de Producto (Ali Gómez)',
 chip_loc_sandiego:'📍 San Diego',
 chip_loc_valencia:'📍 Valencia',
 chip_loc_otra_ve:'🇻🇪 Otra ciudad (Venezuela)',
@@ -332,12 +363,41 @@ hero_h1:'Get your business found, seen, and selling.',
 hero_p:'Websites and Google Maps optimization for businesses in San Diego, Valencia, and Carabobo, as well as international brands. Transparent work with proven results.',
 hero_cta_advisor:'Talk to an advisor',
 hero_cta_services:'View services',
-do_bubble:"I'm Do. I'm here to help optimize your brand.",
-do_alt:'Do, the VENDO mascot',
-do_action:'Explore VENDO services',
+do_bubble:"I'm Do. I help your business get found and sell.",
+do_alt:'Do, the VENDO assistant',
+do_action:'Open Do interactive assistant',
+do_quick_aria:'Quick questions for Do',
+do_pill_maps:'📍 Rank on Google Maps',
+do_pill_web:'🌐 Build my website',
+do_pill_photo:'📸 Product photography',
+aria_do_concierge:'Do virtual assistant',
+do_panel_title:'Do · VENDO Assistant',
+do_panel_sub:'Quick diagnosis for your business',
+do_panel_greeting:"Hi! I'm Do. What is the top priority for your business today? Pick an option to see the exact plan:",
+do_opt_maps:'Rank first on Google Maps',
+do_opt_web:'Launch a website with digital catalog',
+do_opt_conecta:'Bring customers back every month (VIP Club)',
+do_opt_photo:'Commercial photography (Ali Gómez)',
+do_reply_maps:'Great move! We claim, verify, and rank your Google Business Profile with a direct WhatsApp button and a real customer review strategy.',
+do_reply_web:'Let us build it! We craft ultra-fast mobile websites with your own .com domain, interactive catalog, and 0% commission WhatsApp orders.',
+do_reply_conecta:'Pure retention! With VÉNDO Conecta we launch your digital VIP membership card and run your monthly customer communication.',
+do_reply_photo:'Visuals that sell! In exclusive partnership with Ali Gómez, we shoot editorial-grade photos of your dishes, products, and premises.',
+do_cta_quote:'Build my quote now',
+do_cta_cases:'See case studies',
+do_toast_default:'Shall we evaluate your brand?',
+do_toast_maps:'📍 Is your store ranking on Google Maps?',
+do_toast_services:'✨ Web, Maps, Conecta, or Photography',
+do_toast_conecta:'🔁 Bring customers back every month',
+do_toast_clients:'🚀 See the brands we have digitized',
 do_msg_whatsapp:"I'm Do. Shall we chat on WhatsApp about your business? 🚀",
 do_msg_maps:'Your business on Google Maps in record time 📍',
 do_msg_services:'Modern design without broken templates ✨',
+services_tag:'TURNKEY SOLUTIONS · COMMERCIAL IMPACT',
+service1_cta:'Quote a website',
+service2_cta:'Optimize my Google Maps',
+service3_cta:'Inquire full package',
+service4_badge:'EXCLUSIVE PARTNERSHIP · ALI GÓMEZ',
+service4_cta:'Book visual production',
 maps_tag:'LIVE SIMULATOR · PROVEN IMPACT',
 maps_h2:'The difference between getting found or skipped.',
 maps_p:'82% of shoppers search on Google before visiting a store or ordering delivery. An abandoned profile drives customers away; an optimized profile builds instant trust and sales.',
@@ -506,10 +566,12 @@ chip_svc_paquete:'🚀 Full Package (Web + Maps)',
 chip_svc_web:'🌐 Website with catalog',
 chip_svc_maps:'📍 Google Maps profile',
 chip_svc_conecta:'🔁 VÉNDO Conecta (Loyalty Service)',
+chip_svc_foto:'📸 Professional Photography (Ali Gómez)',
 val_paquete:'Full Package (Web + Maps)',
 val_web:'Website with catalog',
 val_maps:'Google Maps profile',
 val_conecta:'VÉNDO Conecta (Loyalty Service)',
+val_foto:'Commercial & Product Photography (Ali Gómez)',
 chip_loc_sandiego:'📍 San Diego',
 chip_loc_valencia:'📍 Valencia',
 chip_loc_otra_ve:'🇻🇪 Other city (Venezuela)',
@@ -606,107 +668,237 @@ if(detected!==currentLang)applyLanguage(detected);
 }
 })();
 
-(function initDo(){
-const doEl=document.querySelector('.do');
-const bubble=doEl?.querySelector('.bub');
-if(!doEl||!bubble)return;
+(function initDoSystem(){
+const doEl=document.getElementById('hero-do-btn');
+const bubble=document.getElementById('hero-do-bubble');
+const bubbleText=bubble?.querySelector('.bub-text');
+const concierge=document.getElementById('do-concierge');
+const dockBtn=document.getElementById('do-dock-btn');
+const dockToast=document.getElementById('do-dock-toast');
+const dockToastText=document.getElementById('do-dock-toast-text');
+const panelClose=document.getElementById('do-panel-close');
+const chatReply=document.getElementById('do-chat-reply');
+const modalTrigger=document.getElementById('do-modal-trigger');
+const scrollTrigger=document.getElementById('do-scroll-trigger');
+const progressBar=document.getElementById('scroll-progress');
+if(!doEl||!bubble||!bubbleText)return;
+
 const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const interactiveMessages=['do_msg_whatsapp','do_msg_maps','do_msg_services'];
-const scrollMessages=[
-['google-maps','do_msg_maps'],
-['servicios','do_msg_services'],
-['clientes','do_msg_whatsapp']
+const sectionToasts=[
+  ['google-maps','do_msg_maps','do_toast_maps'],
+  ['servicios','do_msg_services','do_toast_services'],
+  ['conecta','do_msg_whatsapp','do_toast_conecta'],
+  ['clientes','do_msg_whatsapp','do_toast_clients']
 ];
+
+const topicConfig={
+  maps:{reply:'do_reply_maps',preset:'maps',target:'#google-maps'},
+  web:{reply:'do_reply_web',preset:'web',target:'#clientes'},
+  conecta:{reply:'do_reply_conecta',preset:'conecta',target:'#conecta'},
+  photo:{reply:'do_reply_photo',preset:'foto',target:'#servicios'}
+};
+
 let messageIndex=0;
 let currentKey='do_bubble';
+let currentToastKey='do_toast_default';
+let currentTopic=null;
 let messageTimer;
 let bounceTimer;
+let talkTimer;
 let scrollQueued=false;
 
-function setMessage(key,immediate=false){
-if(key===currentKey&&!immediate)return;
-currentKey=key;
-clearTimeout(messageTimer);
-bubble.classList.toggle('is-changing',!reduceMotion&&!immediate);
-messageTimer=setTimeout(()=>{
-bubble.textContent=window.VENDO_I18N.t(key);
-bubble.classList.remove('is-changing');
-},reduceMotion||immediate?0:150);
+function t(key){return window.VENDO_I18N?window.VENDO_I18N.t(key):'';}
+
+function pulseTalking(ms=650){
+  if(reduceMotion)return;
+  clearTimeout(talkTimer);
+  doEl.setAttribute('data-mood','talking');
+  talkTimer=setTimeout(()=>doEl.setAttribute('data-mood','idle'),ms);
 }
 
-function rotateMessage(){
-messageIndex=(messageIndex+1)%interactiveMessages.length;
-setMessage(interactiveMessages[messageIndex]);
+function setBubbleMessage(key,immediate=false){
+  if(key===currentKey&&!immediate)return;
+  currentKey=key;
+  clearTimeout(messageTimer);
+  bubble.classList.toggle('is-changing',!reduceMotion&&!immediate);
+  pulseTalking(550);
+  messageTimer=setTimeout(()=>{
+    bubbleText.textContent=t(key);
+    bubble.classList.remove('is-changing');
+  },reduceMotion||immediate?0:150);
 }
 
-doEl.addEventListener('pointerenter',rotateMessage);
+function rotateHeroMessage(){
+  messageIndex=(messageIndex+1)%interactiveMessages.length;
+  setBubbleMessage(interactiveMessages[messageIndex]);
+}
+
+function toggleConcierge(forceOpen){
+  if(!concierge||!dockBtn)return;
+  const open=typeof forceOpen==='boolean'?forceOpen:!concierge.classList.contains('is-open');
+  concierge.classList.toggle('is-open',open);
+  concierge.classList.toggle('is-visible',true);
+  dockBtn.setAttribute('aria-expanded',open?'true':'false');
+  document.getElementById('do-panel')?.setAttribute('aria-hidden',open?'false':'true');
+}
+
+function selectTopic(topic){
+  const cfg=topicConfig[topic];
+  if(!cfg)return;
+  currentTopic=topic;
+  document.querySelectorAll('.do-opt-btn').forEach(btn=>{
+    btn.classList.toggle('active',btn.getAttribute('data-do-topic')===topic);
+  });
+  if(chatReply)chatReply.textContent=t(cfg.reply);
+  if(modalTrigger)modalTrigger.setAttribute('data-preset-service',cfg.preset);
+  if(scrollTrigger)scrollTrigger.setAttribute('href',cfg.target);
+  pulseTalking(700);
+}
+
+doEl.addEventListener('pointerenter',rotateHeroMessage);
 doEl.addEventListener('pointerdown',e=>{
-if(e.pointerType!=='mouse'){doEl.classList.add('is-reacting');rotateMessage();}
-});
-doEl.addEventListener('pointermove',e=>{
-if(reduceMotion||e.pointerType!=='mouse')return;
-const rect=doEl.getBoundingClientRect();
-const x=(e.clientX-rect.left)/rect.width-.5;
-const y=(e.clientY-rect.top)/rect.height-.5;
-doEl.style.setProperty('--do-tilt-x',`${-y*10}deg`);
-doEl.style.setProperty('--do-tilt-y',`${x*12}deg`);
-});
-doEl.addEventListener('pointerleave',()=>{
-doEl.classList.remove('is-reacting');
-doEl.style.setProperty('--do-tilt-x','0deg');
-doEl.style.setProperty('--do-tilt-y','0deg');
-});
-doEl.addEventListener('click',()=>{
-clearTimeout(bounceTimer);
-doEl.classList.remove('is-clicked');
-void doEl.offsetWidth;
-doEl.classList.add('is-clicked');
-bounceTimer=setTimeout(()=>doEl.classList.remove('is-clicked'),550);
-document.getElementById('servicios')?.scrollIntoView({behavior:reduceMotion?'auto':'smooth'});
+  if(e.pointerType!=='mouse'){doEl.classList.add('is-reacting');rotateHeroMessage();}
 });
 
-function updateScrollMessage(){
-let key='do_bubble';
-scrollMessages.forEach(([id,message])=>{
-const section=document.getElementById(id);
-if(section&&section.getBoundingClientRect().top<=window.innerHeight*.55)key=message;
-});
-setMessage(key);
-scrollQueued=false;
-}
-window.addEventListener('scroll',()=>{
-if(!scrollQueued){scrollQueued=true;requestAnimationFrame(updateScrollMessage);}
+window.addEventListener('pointermove',e=>{
+  if(reduceMotion||e.pointerType!=='mouse')return;
+  const rect=doEl.getBoundingClientRect();
+  if(rect.bottom<0||rect.top>window.innerHeight)return;
+  const cx=rect.left+rect.width/2;
+  const cy=rect.top+rect.height/2;
+  const dx=Math.max(-1,Math.min(1,(e.clientX-cx)/(window.innerWidth*0.45)));
+  const dy=Math.max(-1,Math.min(1,(e.clientY-cy)/(window.innerHeight*0.45)));
+  doEl.style.setProperty('--do-eye-x',`${(dx*14).toFixed(1)}px`);
+  doEl.style.setProperty('--do-eye-y',`${(dy*10).toFixed(1)}px`);
+  doEl.style.setProperty('--do-tilt-x',`${(-dy*7).toFixed(2)}deg`);
+  doEl.style.setProperty('--do-tilt-y',`${(dx*9).toFixed(2)}deg`);
 },{passive:true});
-document.addEventListener('vendo:langchange',()=>setMessage(currentKey,true));
 
-const eyes=[...doEl.querySelectorAll('.do-eyes span')];
+doEl.addEventListener('pointerleave',()=>{
+  doEl.classList.remove('is-reacting');
+});
+
+doEl.addEventListener('click',()=>{
+  clearTimeout(bounceTimer);
+  doEl.classList.remove('is-clicked');
+  void doEl.offsetWidth;
+  doEl.classList.add('is-clicked');
+  doEl.setAttribute('data-mood','wink');
+  bounceTimer=setTimeout(()=>{
+    doEl.classList.remove('is-clicked');
+    doEl.setAttribute('data-mood','idle');
+  },600);
+  toggleConcierge(true);
+});
+
+document.querySelectorAll('.do-pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    const intent=pill.getAttribute('data-do-intent');
+    toggleConcierge(true);
+    if(intent)selectTopic(intent);
+  });
+});
+
+dockBtn?.addEventListener('click',()=>toggleConcierge());
+dockToast?.addEventListener('click',()=>toggleConcierge(true));
+panelClose?.addEventListener('click',()=>toggleConcierge(false));
+document.querySelectorAll('.do-opt-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>selectTopic(btn.getAttribute('data-do-topic')));
+});
+modalTrigger?.addEventListener('click',()=>toggleConcierge(false));
+scrollTrigger?.addEventListener('click',()=>toggleConcierge(false));
+
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&concierge?.classList.contains('is-open'))toggleConcierge(false);
+});
+
+const vipCard=document.querySelector('.vip-card');
+vipCard?.addEventListener('pointermove',e=>{
+  if(reduceMotion||e.pointerType!=='mouse')return;
+  const r=vipCard.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width-0.5;
+  const y=(e.clientY-r.top)/r.height-0.5;
+  vipCard.style.setProperty('--vip-rx',`${(-y*12).toFixed(2)}deg`);
+  vipCard.style.setProperty('--vip-ry',`${(x*14).toFixed(2)}deg`);
+});
+vipCard?.addEventListener('pointerleave',()=>{
+  vipCard.style.setProperty('--vip-rx','0deg');
+  vipCard.style.setProperty('--vip-ry','0deg');
+});
+
+function updateOnScroll(){
+  const scrollTop=window.scrollY||document.documentElement.scrollTop;
+  const maxScroll=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+  if(progressBar)progressBar.style.setProperty('--scroll-progress',(scrollTop/maxScroll).toFixed(4));
+
+  if(concierge){
+    const shouldShowDock=scrollTop>320||concierge.classList.contains('is-open');
+    concierge.classList.toggle('is-visible',shouldShowDock);
+  }
+
+  let heroKey='do_bubble';
+  let toastKey='do_toast_default';
+  sectionToasts.forEach(([id,msgKey,tKey])=>{
+    const sec=document.getElementById(id);
+    if(sec&&sec.getBoundingClientRect().top<=window.innerHeight*0.55){
+      heroKey=msgKey;
+      toastKey=tKey;
+    }
+  });
+  setBubbleMessage(heroKey);
+  if(dockToastText&&toastKey!==currentToastKey){
+    currentToastKey=toastKey;
+    dockToastText.textContent=t(toastKey);
+  }
+  scrollQueued=false;
+}
+
+window.addEventListener('scroll',()=>{
+  if(!scrollQueued){scrollQueued=true;requestAnimationFrame(updateOnScroll);}
+},{passive:true});
+
+document.addEventListener('vendo:langchange',()=>{
+  setBubbleMessage(currentKey,true);
+  if(dockToastText)dockToastText.textContent=t(currentToastKey);
+  if(currentTopic&&chatReply&&topicConfig[currentTopic]){
+    chatReply.textContent=t(topicConfig[currentTopic].reply);
+  }
+});
+
+const eyes=[...document.querySelectorAll('.do-svg-eye')];
 function randomizeBlink(){
-const duration=2800+Math.random()*3500;
-eyes.forEach(eye=>{eye.style.animationDuration=`${duration}ms`;});
+  const duration=3200+Math.random()*3200;
+  eyes.forEach(eye=>{eye.style.animationDuration=`${duration.toFixed(0)}ms`;});
 }
 if(!reduceMotion&&eyes.length){
-const delay=-Math.random()*4500;
-eyes.forEach(eye=>{eye.style.animationDelay=`${delay}ms`;});
-randomizeBlink();
-eyes[0].addEventListener('animationiteration',randomizeBlink);
+  randomizeBlink();
+  eyes[0].addEventListener('animationiteration',randomizeBlink);
 }
-updateScrollMessage();
+
+updateOnScroll();
 })();
 
 (function initScrollReveals(){
-const elements=document.querySelectorAll('.client-card,.row,.bento-card,.conecta-card');
+const elements=document.querySelectorAll('.client-card,.row,.bento-card,.conecta-card,.contact-box,.map-preview-card');
 if(!elements.length)return;
 if(!('IntersectionObserver'in window)||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-elements.forEach(el=>el.classList.add('in-view'));
-return;
+  elements.forEach(el=>el.classList.add('in-view'));
+  return;
 }
 document.documentElement.classList.add('reveal-ready');
 const observer=new IntersectionObserver(entries=>{
-entries.forEach(entry=>{
-if(entry.isIntersecting){entry.target.classList.add('in-view');observer.unobserve(entry.target);}
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('in-view');
+      observer.unobserve(entry.target);
+    }
+  });
+},{threshold:0.12,rootMargin:'0px 0px -40px'});
+elements.forEach((el,idx)=>{
+  el.style.transitionDelay=`${(idx%4)*55}ms`;
+  observer.observe(el);
 });
-},{threshold:.12,rootMargin:'0px 0px -40px'});
-elements.forEach(el=>observer.observe(el));
 })();
 
 // ==========================================

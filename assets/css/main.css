@@ -276,7 +276,6 @@ footer{padding:36px 0;color:var(--mut);font-size:14px}footer .wrap{display:flex;
 /* Columna Visual: Carnet VIP Editorial */
 .conecta-visual{display:flex;justify-content:center;align-items:center}
 .vip-card{width:100%;max-width:320px;aspect-ratio:1.58/1;border-radius:20px;background:linear-gradient(140deg,#02472d,#011a12);border:1px solid rgba(206,241,123,.35);padding:22px;display:flex;flex-direction:column;justify-content:space-between;color:var(--cream);box-shadow:0 20px 48px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.05);position:relative;overflow:hidden;transition:transform .25s ease}
-.vip-card:hover{transform:translateY(-3px)}
 .vip-card::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(206,241,123,.25),transparent 70%)}
 
 .vip-card-head{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
@@ -306,34 +305,136 @@ footer{padding:36px 0;color:var(--mut);font-size:14px}footer .wrap{display:flex;
   .nav-link{font-size:14px;padding:6px 2px}
 }
 
-nav{animation:navReveal .55s ease both}
-.hero h1{animation:heroReveal .65s .12s ease both}
-.hero p{animation:heroReveal .65s .24s ease both}
-.hero .cta{animation:heroReveal .65s .36s ease both}
-.do{width:min(100%,320px);padding:0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;animation:doHeroIn .7s .3s cubic-bezier(.34,1.56,.64,1) both;-webkit-tap-highlight-color:transparent}
-.do:focus-visible{outline:3px solid var(--lime);outline-offset:6px;border-radius:20px}
-.do-character{position:relative;width:fit-content;max-width:100%;margin:auto;perspective:700px;animation:doFloat 4.5s ease-in-out infinite}
-.do img{transform:rotateX(var(--do-tilt-x,0deg)) rotateY(var(--do-tilt-y,0deg));transition:transform .18s ease;transform-style:preserve-3d}
-.do-eyes{position:absolute;inset:0;pointer-events:none}
-.do-eyes span{--eye-rotation:8deg;position:absolute;left:44%;top:36.7%;width:4.9%;height:9%;border-radius:45%;background:var(--ink);transform:rotate(var(--eye-rotation)) scaleY(0);animation:doBlink 4.5s infinite}
-.do-eyes span+span{--eye-rotation:-7deg;left:57.1%;top:35.5%}
-.do:hover .bub,.do.is-reacting .bub{transform:translateY(-2px) rotate(-1deg)}
-.do.is-clicked .do-character{animation:doBounce .55s ease}
-.bub{display:flex;align-items:center;min-height:68px;transition:transform .2s ease,opacity .15s ease}
-.bub.is-changing{opacity:0}
-.reveal-ready .client-card,.reveal-ready .row,.reveal-ready .bento-card,.reveal-ready .conecta-card{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s}
-.reveal-ready .client-card.in-view,.reveal-ready .row.in-view,.reveal-ready .bento-card.in-view,.reveal-ready .conecta-card.in-view{opacity:1;transform:none}
-.reveal-ready .client-card.in-view:hover{transform:translateY(-3px)}
+/* ==========================================
+   BARRA DE PROGRESO DE SCROLL SUPERIOR
+   ========================================== */
+.scroll-progress-bar{position:fixed;top:0;left:0;width:100%;height:3px;background:var(--lime);transform-origin:0 50%;transform:scaleX(var(--scroll-progress,0));z-index:9998;pointer-events:none;box-shadow:0 0 10px rgba(206,241,123,.45)}
+@supports (animation-timeline:scroll(root)){
+  .scroll-progress-bar{animation:scrollProgressGrow linear both;animation-timeline:scroll(root)}
+}
+@keyframes scrollProgressGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
-@keyframes doBlink{0%,91%,94%,100%{transform:rotate(var(--eye-rotation)) scaleY(0)}92%,93%{transform:rotate(var(--eye-rotation)) scaleY(1)}}
+/* ==========================================
+   HERO ENTRANCE & MASCOTA "DO" VECTORIAL
+   ========================================== */
+nav{animation:navReveal .55s cubic-bezier(.16,1,.3,1) both}
+.hero h1{animation:heroReveal .65s .1s cubic-bezier(.16,1,.3,1) both}
+.hero p{animation:heroReveal .65s .2s cubic-bezier(.16,1,.3,1) both}
+.hero .cta{animation:heroReveal .65s .3s cubic-bezier(.16,1,.3,1) both}
+
+.do-stage{display:flex;flex-direction:column;align-items:center;justify-self:center;gap:14px;width:min(100%,350px)}
+.do{position:relative;width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:center;animation:doHeroIn .75s .25s cubic-bezier(.34,1.56,.64,1) both;-webkit-tap-highlight-color:transparent}
+.do:focus-visible{outline:3px solid var(--lime);outline-offset:6px;border-radius:24px}
+
+.bub{display:flex;align-items:center;gap:10px;min-height:66px;background:var(--lime);color:var(--ink);border-radius:20px 20px 20px 4px;padding:12px 16px;font-size:13.5px;font-weight:700;line-height:1.35;max-width:280px;margin:0 auto 14px;text-align:left;box-shadow:0 10px 26px rgba(0,0,0,.3);transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .16s ease}
+.bub-status-dot{width:8px;height:8px;border-radius:50%;background:var(--forest);flex-shrink:0}
+.bub.is-changing{opacity:0;transform:translateY(4px) scale(.97)}
+
+.do-character{position:relative;width:fit-content;max-width:100%;margin:auto;perspective:800px;animation:doFloat 4.6s ease-in-out infinite}
+.do-aura{position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle,rgba(206,241,123,.18) 0%,transparent 70%);filter:blur(16px);z-index:0;pointer-events:none;transition:transform .3s ease,opacity .3s ease}
+.do:hover .do-aura,.do.is-reacting .do-aura{transform:scale(1.18);opacity:1}
+
+.do-svg{position:relative;z-index:1;height:min(350px,48vw);width:auto;display:block;margin:auto;overflow:visible;transform:rotateX(var(--do-tilt-x,0deg)) rotateY(var(--do-tilt-y,0deg));transition:transform .18s ease-out;filter:drop-shadow(0 14px 28px rgba(0,0,0,.35))}
+.do-svg-body{fill:var(--cream);transition:fill .25s ease}
+.do-svg-face{transform:translate(var(--do-eye-x,0px),var(--do-eye-y,0px));transition:transform .12s ease-out}
+.do-svg-eye,.do-svg-mouth{fill:var(--ink);transform-box:fill-box;transform-origin:center;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.do-svg-eye{animation:doBlink 4.8s infinite}
+
+/* Estados Emocionales de Do */
+.do:hover .bub,.do.is-reacting .bub{transform:translateY(-3px) rotate(-1deg)}
+.do[data-mood="excited"] .do-svg-mouth,.do:hover .do-svg-mouth{transform:scale(1.22,1.35)}
+.do[data-mood="wink"] .do-svg-eye-r{transform:scaleY(.12)!important}
+.do[data-mood="talking"] .do-svg-mouth{animation:doTalk .32s ease-in-out infinite alternate}
+.do.is-clicked .do-character{animation:doBounce .55s cubic-bezier(.34,1.56,.64,1)}
+
+/* Píldoras Rápidas bajo Do en el Hero */
+.do-quick-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;animation:heroReveal .65s .42s cubic-bezier(.16,1,.3,1) both}
+.do-pill{background:#022015;color:var(--cream);border:1px solid var(--forest);border-radius:999px;padding:6px 12px;font-family:"Space Mono",monospace;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .18s ease}
+.do-pill:hover{background:var(--lime);color:var(--ink);border-color:var(--lime);transform:translateY(-2px)}
+
+/* ==========================================
+   FILAS DE SERVICIOS INTERACTIVAS (#servicios)
+   ========================================== */
+.svc-head{margin-bottom:28px}
+.row{display:grid;grid-template-columns:1.1fr 1.9fr;gap:30px;padding:32px 20px;border-top:2px solid var(--forest);border-radius:16px;transition:background-color .22s ease,transform .22s ease,border-color .22s ease}
+.row:hover{background:rgba(1,68,44,.18);transform:translateX(6px)}
+.row-title-wrap{display:flex;align-items:flex-start;gap:16px}
+.row-num{font-family:"Space Mono",monospace;font-size:13px;font-weight:700;color:var(--lime);background:rgba(206,241,123,.1);border:1px solid rgba(206,241,123,.25);padding:4px 9px;border-radius:8px;margin-top:4px;flex-shrink:0}
+.row-body{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.row-action-btn{background:transparent;color:var(--lime);border:1px solid rgba(206,241,123,.3);border-radius:999px;padding:7px 15px;font-family:"Space Mono",monospace;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .18s ease}
+.row-action-btn:hover{background:var(--lime);color:var(--ink);border-color:var(--lime);transform:translateX(3px)}
+.row-featured-partner{background:linear-gradient(90deg,rgba(1,68,44,.22),rgba(2,32,21,.05));border-top-color:rgba(206,241,123,.4)}
+.partner-pill{display:inline-block;font-family:"Space Mono",monospace;font-size:10.5px;font-weight:700;color:var(--ink);background:var(--lime);padding:2px 8px;border-radius:6px;margin-bottom:6px;letter-spacing:.04em}
+
+/* ==========================================
+   ASISTENTE FLOTANTE "DO CONCIERGE"
+   ========================================== */
+.do-concierge{position:fixed;right:22px;bottom:22px;z-index:9990;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:none}
+.do-dock{display:flex;align-items:center;gap:10px;pointer-events:auto;opacity:0;transform:translateY(16px) scale(.92);transition:opacity .28s ease,transform .28s cubic-bezier(.34,1.56,.64,1)}
+.do-concierge.is-visible .do-dock{opacity:1;transform:translateY(0) scale(1)}
+
+.do-dock-toast{background:var(--cream);color:var(--ink);border:2px solid var(--lime);border-radius:16px 16px 4px 16px;padding:9px 14px;font-family:"Space Mono",monospace;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.4);max-width:230px;text-align:left;line-height:1.3;transition:transform .2s ease,opacity .2s ease}
+.do-dock-toast:hover{transform:translateY(-2px)}
+.do-dock-toast.is-hidden{opacity:0;pointer-events:none;transform:translateY(6px) scale(.95)}
+
+.do-dock-btn{position:relative;width:62px;height:62px;border-radius:50%;background:linear-gradient(145deg,#023824,#011910);border:2px solid var(--lime);box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 4px rgba(206,241,123,.15);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease}
+.do-dock-btn:hover{transform:scale(1.07) translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.6),0 0 0 6px rgba(206,241,123,.25)}
+.do-dock-btn .do-svg{height:46px;width:auto;filter:none}
+.do-dock-badge{position:absolute;top:-3px;right:-3px;width:20px;height:20px;border-radius:50%;background:var(--lime);color:var(--ink);font-family:"Space Mono",monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--ink)}
+
+.do-panel{width:min(360px,calc(100vw - 32px));background:#021c12;border:1.5px solid var(--forest);border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.65),0 0 0 1px rgba(206,241,123,.2);overflow:hidden;pointer-events:none;opacity:0;visibility:hidden;transform:translateY(16px) scale(.96);transform-origin:bottom right;transition:opacity .24s ease,transform .24s cubic-bezier(.16,1,.3,1),visibility .24s}
+.do-concierge.is-open .do-panel{opacity:1;visibility:visible;transform:translateY(0) scale(1);pointer-events:auto}
+.do-concierge.is-open .do-dock-toast{opacity:0;pointer-events:none}
+
+.do-panel-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#01140c;border-bottom:1px solid var(--forest)}
+.do-panel-identity{display:flex;align-items:center;gap:12px}
+.do-mini-avatar{width:42px;height:42px;border-radius:50%;background:#022b1b;border:1px solid rgba(206,241,123,.35);display:flex;align-items:center;justify-content:center;padding:4px;flex-shrink:0}
+.do-mini-avatar .do-svg{height:32px;width:auto;filter:none}
+.do-panel-identity strong{display:block;font-family:"Fredoka",sans-serif;font-size:16px;color:var(--cream);line-height:1.15}
+.do-panel-sub{display:block;font-size:11.5px;color:var(--lime)}
+.do-panel-close{background:rgba(255,255,255,.06);border:1px solid var(--forest);color:var(--cream);width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.do-panel-close:hover{background:var(--lime);color:var(--ink)}
+
+.do-panel-body{padding:18px}
+.do-chat-msg{background:#01120b;border:1px solid rgba(206,241,123,.22);border-radius:16px 16px 16px 4px;padding:12px 14px;font-size:13px;color:var(--cream);line-height:1.5;margin-bottom:14px}
+.do-options-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.do-opt-btn{background:#01150d;color:var(--cream);border:1px solid var(--forest);border-radius:12px;padding:10px 12px;font-family:"Space Mono",monospace;font-size:12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .16s ease}
+.do-opt-btn:hover,.do-opt-btn.active{border-color:var(--lime);background:rgba(206,241,123,.1);color:var(--lime);transform:translateX(3px)}
+.do-opt-ico{font-size:15px;flex-shrink:0}
+
+.do-panel-actions{display:grid;grid-template-columns:1.3fr 1fr;gap:8px}
+.do-panel-actions .btn{font-size:13.5px;padding:10px 12px;text-align:center;display:inline-flex;align-items:center;justify-content:center}
+
+/* ==========================================
+   COREOGRAFÍA DE SCROLL Y TARJETA VIP 3D
+   ========================================== */
+.vip-card{transform:perspective(900px) rotateX(var(--vip-rx,0deg)) rotateY(var(--vip-ry,0deg));transition:transform .2s ease-out}
+
+.reveal-ready .client-card,.reveal-ready .row,.reveal-ready .bento-card,.reveal-ready .conecta-card,.reveal-ready .contact-box,.reveal-ready .map-preview-card{opacity:0;transform:translateY(22px);transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .5s cubic-bezier(.16,1,.3,1),border-color .2s,box-shadow .2s,background-color .2s}
+.reveal-ready .client-card.in-view,.reveal-ready .row.in-view,.reveal-ready .bento-card.in-view,.reveal-ready .conecta-card.in-view,.reveal-ready .contact-box.in-view,.reveal-ready .map-preview-card.in-view{opacity:1;transform:none}
+.reveal-ready .client-card.in-view:hover{transform:translateY(-4px)}
+.reveal-ready .row.in-view:hover{transform:translateX(6px)}
+
+@keyframes doBlink{0%,90%,94%,100%{transform:scaleY(1)}92%{transform:scaleY(.08)}}
+@keyframes doTalk{from{transform:scale(1,1)}to{transform:scale(1.18,1.45)}}
 @keyframes doFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes doBounce{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-16px) scale(1.04)}70%{transform:translateY(2px) scale(.98)}}
 @keyframes doHeroIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
 @keyframes heroReveal{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes navReveal{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 
+@media(max-width:760px){
+  .row{grid-template-columns:1fr;gap:14px;padding:24px 14px}
+  .do-concierge{right:14px;bottom:14px}
+  .do-dock-toast{max-width:190px;font-size:11px;padding:7px 11px}
+  .do-panel-actions{grid-template-columns:1fr}
+  .do-pill,.do-dock-toast,.do-opt-btn,.do-panel-actions .btn,.row-action-btn{min-height:44px}
+  .do-panel-close{width:44px;height:44px;min-width:44px;flex-shrink:0}
+  .carousel-btn{width:44px;height:44px}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;scroll-behavior:auto!important}
-  .reveal-ready .client-card,.reveal-ready .row,.reveal-ready .bento-card,.reveal-ready .conecta-card{opacity:1;transform:none}
-  .do img{transform:none!important}
+  .reveal-ready .client-card,.reveal-ready .row,.reveal-ready .bento-card,.reveal-ready .conecta-card,.reveal-ready .contact-box,.reveal-ready .map-preview-card{opacity:1;transform:none}
+  .do-svg,.vip-card{transform:none!important}
 }
