@@ -1,10 +1,10 @@
-// Capa de datos del panel: React Query sobre la API real /api/admin/crm.
-// No hay datos mock: todo proviene de los endpoints reales.
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  deleteMovement,
   fetchClients,
   fetchCobros,
+  fetchCustomCategories,
   fetchMovements,
   fetchNotifications,
   fetchSettings,
@@ -12,6 +12,7 @@ import {
   getStoredEmail,
   postClient,
   postClientService,
+  postCustomCategory,
   postMovement,
   postPayment,
   putSettings,
@@ -26,7 +27,9 @@ import {
   type ApiSettings,
   type Client,
   type Cobro,
+  type CustomCategory,
   type Movement,
+  type MovementFrequency,
   type SummaryResponse,
   type Transaction,
 } from '@/lib/vendo/data';
@@ -38,10 +41,13 @@ type LocalSettings = { company: string; email: string; notifications: boolean; r
 export type SettingsFull = LocalSettings &
   ApiSettings & { currency: 'USD' };
 
-type ModalKind = 'client' | 'payment' | null;
+export type ModalKind = 'client' | 'payment' | 'expense' | null;
 
 type NewClientInput = { full_name: string; email?: string; whatsapp_number?: string; notes?: string };
-type NewTransactionInput = {
+export type NewTransactionInput = {
+  kind?: 'income' | 'expense';
+  frequency?: MovementFrequency;
+  new_category_label?: string;
   client_id?: string;
   description: string;
   category: string;
@@ -59,8 +65,10 @@ type Store = {
   summary: SummaryResponse | undefined;
   series: SummaryResponse['series'];
   incomeByCategory: SummaryResponse['income_by_category'];
+  expenseByCategory: SummaryResponse['expense_by_category'];
   movements: Movement[];
   transactions: Transaction[];
+  customCategories: CustomCategory[];
   clients: Client[];
   cobros: Cobro[];
   alerts: Alert[];
@@ -70,6 +78,8 @@ type Store = {
   addClient: (input: NewClientInput) => Promise<void>;
   addService: (clientId: string, input: NewServiceInput) => Promise<void>;
   addTransaction: (input: NewTransactionInput) => Promise<void>;
+  removeMovement: (id: string) => Promise<void>;
+  addCustomCategory: (input: { kind: 'income' | 'expense'; label: string; frequency_default?: MovementFrequency }) => Promise<CustomCategory>;
   markPaid: (cobro: Cobro, date?: string) => Promise<void>;
   saveSettings: (input: Partial<SettingsFull>) => Promise<void>;
   refresh: () => void;
@@ -78,6 +88,8 @@ type Store = {
   modal: ModalKind;
   modalClientId: string | null;
   setModal: (value: ModalKind, clientId?: string | null) => void;
+  doOpen: boolean;
+  setDoOpen: (open: boolean) => void;
 };
 
 const Context = createContext<Store | null>(null);
@@ -113,32 +125,37 @@ export function VendoProvider({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState('');
   const [modal, setModalState] = useState<ModalKind>(null);
   const [modalClientId, setModalClientId] = useState<string | null>(null);
+  const [doOpen, setDoOpen] = useState(false);
   const [local, setLocal] = useState<LocalSettings>(() => readLocal());
 
   const summaryQuery = useQuery({ queryKey: ['summary', 'this_month'], queryFn: () => fetchSummary('this_month') });
   const seriesQuery = useQuery({ queryKey: ['summary', 'last_6'], queryFn: () => fetchSummary('last_6') });
   const movementsQuery = useQuery({ queryKey: ['movements'], queryFn: () => fetchMovements() });
+  const customCategoriesQuery = useQuery({ queryKey: ['custom_categories'], queryFn: () => fetchCustomCategories() });
   const clientsQuery = useQuery({ queryKey: ['clients'], queryFn: () => fetchClients() });
   const cobrosQuery = useQuery({ queryKey: ['cobros'], queryFn: () => fetchCobros() });
   const notificationsQuery = useQuery({ queryKey: ['notifications'], queryFn: () => fetchNotifications() });
   const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: () => fetchSettings() });
 
+  const customCategories = customCategoriesQuery.data?.categories ?? [];
   const movements = movementsQuery.data?.movements ?? [];
+
   const transactions = useMemo<Transaction[]>(
     () =>
       movements.map((m) => ({
         id: m.id,
         clientId: m.client_id || '',
-        clientName: m.client_name || '—',
+        clientName: m.client_name || (m.kind === 'expense' ? 'VENDO Operativo' : '—'),
         description: m.description || '—',
         category: m.category,
-        service: categoryLabel(m.category),
+        service: categoryLabel(m.category, customCategories),
         amount: m.amount_cents / 100,
         date: m.movement_date,
         status: 'Completado',
         type: m.kind === 'income' ? 'Ingreso' : 'Egreso',
+        frequency: m.frequency || 'one_time',
       })),
-    [movements],
+    [movements, customCategories],
   );
 
   const clients = useMemo<Client[]>(
@@ -203,6 +220,7 @@ export function VendoProvider({ children }: { children: ReactNode }) {
     queryClient.invalidateQueries({ queryKey: ['movements'] });
     queryClient.invalidateQueries({ queryKey: ['cobros'] });
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    queryClient.invalidateQueries({ queryKey: ['custom_categories'] });
   };
 
   const addClientMutation = useMutation({
@@ -221,7 +239,9 @@ export function VendoProvider({ children }: { children: ReactNode }) {
   const addTransactionMutation = useMutation({
     mutationFn: (input: NewTransactionInput) =>
       postMovement({
-        kind: 'income',
+        kind: input.kind || 'income',
+        frequency: input.frequency || 'one_time',
+        new_category_label: input.new_category_label,
         category: input.category,
         amount_usd: input.amount_usd,
         date: input.date,
@@ -229,6 +249,15 @@ export function VendoProvider({ children }: { children: ReactNode }) {
         client_id: input.client_id,
       }),
     onSuccess: invalidateCore,
+  });
+  const removeMovementMutation = useMutation({
+    mutationFn: (id: string) => deleteMovement(id),
+    onSuccess: invalidateCore,
+  });
+  const addCategoryMutation = useMutation({
+    mutationFn: (input: { kind: 'income' | 'expense'; label: string; frequency_default?: MovementFrequency }) =>
+      postCustomCategory(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['custom_categories'] }),
   });
   const markPaidMutation = useMutation({
     mutationFn: ({ cobro, date }: { cobro: Cobro; date?: string }) =>
@@ -253,8 +282,10 @@ export function VendoProvider({ children }: { children: ReactNode }) {
     summary: summaryQuery.data,
     series: seriesQuery.data?.series ?? [],
     incomeByCategory: summaryQuery.data?.income_by_category ?? [],
+    expenseByCategory: summaryQuery.data?.expense_by_category ?? [],
     movements,
     transactions,
+    customCategories,
     clients,
     cobros: cobrosQuery.data?.cobros ?? [],
     alerts: notificationsQuery.data?.alerts ?? [],
@@ -269,6 +300,13 @@ export function VendoProvider({ children }: { children: ReactNode }) {
     },
     addTransaction: async (input) => {
       await addTransactionMutation.mutateAsync(input);
+    },
+    removeMovement: async (id) => {
+      await removeMovementMutation.mutateAsync(id);
+    },
+    addCustomCategory: async (input) => {
+      const res = await addCategoryMutation.mutateAsync(input);
+      return res.category;
     },
     markPaid: async (cobro, date) => {
       await markPaidMutation.mutateAsync({ cobro, date });
@@ -294,9 +332,11 @@ export function VendoProvider({ children }: { children: ReactNode }) {
     modal,
     modalClientId,
     setModal: (value, clientId = null) => {
-      setModalClientId(value === 'payment' ? clientId : null);
+      setModalClientId(value === 'payment' || value === 'expense' ? clientId : null);
       setModalState(value);
     },
+    doOpen,
+    setDoOpen,
   };
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

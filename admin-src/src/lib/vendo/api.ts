@@ -7,7 +7,12 @@ import type {
   CategoryTotal,
   ClientService,
   Cobro,
+  CustomCategory,
+  DoActionExecuted,
+  DoChatMessage,
+  DoMemoryItem,
   Movement,
+  MovementFrequency,
   SeriesPoint,
   Summary,
 } from './data';
@@ -188,12 +193,68 @@ export async function fetchAudit() {
 export async function postMovement(body: {
   kind: 'income' | 'expense';
   category: string;
+  frequency?: MovementFrequency;
+  new_category_label?: string;
   amount_usd: number | string;
   date?: string;
   description?: string;
   client_id?: string;
 }) {
-  return request<{ movement_id: string }>('/movements', { method: 'POST', body });
+  return request<{ movement_id: string; category: string }>('/movements', { method: 'POST', body });
+}
+
+export async function deleteMovement(id: string) {
+  return request<{ ok: boolean }>(`/movements/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function fetchCustomCategories() {
+  return request<{ categories: CustomCategory[] }>('/categories');
+}
+
+export async function postCustomCategory(body: {
+  kind: 'income' | 'expense';
+  label: string;
+  frequency_default?: MovementFrequency;
+}) {
+  return request<{ category: CustomCategory }>('/categories', { method: 'POST', body });
+}
+
+export async function deleteCustomCategory(id: string) {
+  return request<{ ok: boolean }>(`/categories/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+// ----------------------------- Agente Do CRM -----------------------------
+
+export async function fetchDoAgentState() {
+  return request<{
+    ok: boolean;
+    messages: DoChatMessage[];
+    memories: DoMemoryItem[];
+    categories: CustomCategory[];
+  }>('/agent/state');
+}
+
+export async function postDoAgentChat(message: string) {
+  return request<{
+    ok: boolean;
+    reply: string;
+    actions: DoActionExecuted[];
+  }>('/agent/chat', { method: 'POST', body: { message } });
+}
+
+export async function postDoAgentMemory(content: string, topic = 'regla_negocio') {
+  return request<{ ok: boolean; memory: DoMemoryItem }>('/agent/memory', {
+    method: 'POST',
+    body: { content, topic },
+  });
+}
+
+export async function deleteDoAgentMemory(id: string) {
+  return request<{ ok: boolean }>(`/agent/memory/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function clearDoAgentHistory() {
+  return request<{ ok: boolean }>('/agent/history', { method: 'DELETE' });
 }
 
 export async function postClient(body: {

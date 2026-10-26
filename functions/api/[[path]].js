@@ -3,6 +3,7 @@ import {
   clientIp,
   digits,
   email,
+  execute,
   num,
   query,
   queryOne,
@@ -442,6 +443,7 @@ const CRM_SERVICE_TO_CATEGORY = {
   feature_implementation: 'feature_implementation',
   photography: 'photography',
   branding: 'branding',
+  google_maps: 'google_maps',
 };
 const CRM_SHARED_CATEGORIES = ['photography', 'branding'];
 const CRM_INCOME_CATEGORIES = [
@@ -452,9 +454,51 @@ const CRM_INCOME_CATEGORIES = [
   'photography',
   'branding',
   'subscription',
+  'google_maps',
+  'custom_income',
 ];
-const CRM_EXPENSE_CATEGORIES = ['nfc_reinvestment', 'unexpected', 'savings', 'partner_payout'];
+const CRM_EXPENSE_CATEGORIES = [
+  'ai_credits',
+  'software_sub',
+  'advertising',
+  'nfc_reinvestment',
+  'domains_servers',
+  'partner_payout',
+  'unexpected',
+  'savings',
+  'custom_expense',
+];
+const CRM_CATEGORY_NAMES = {
+  web_sale: 'Venta web',
+  hosting_monthly: 'Hosting mensual',
+  vendo_conecta_monthly: 'Vendo Conecta mensual',
+  feature_implementation: 'Implementación',
+  photography: 'Sesión fotográfica',
+  branding: 'Creación de marca',
+  subscription: 'Suscripción',
+  google_maps: 'Google Maps',
+  custom_income: 'Ingreso personalizado',
+  ai_credits: 'Créditos IA / Tokens',
+  software_sub: 'Suscripciones Software / IA',
+  advertising: 'Publicidad & Ads',
+  nfc_reinvestment: 'Compra de Etiquetas / Tarjetas NFC',
+  domains_servers: 'Dominios & Servidores',
+  partner_payout: 'Pago a socio',
+  unexpected: 'Gasto único / Imprevisto',
+  savings: 'Ahorro / Reserva',
+  custom_expense: 'Gasto personalizado',
+};
 const CRM_MEMBERSHIP_RANK = { al_dia: 1, proximo_a_vencer: 2, vencido: 3, suspendido: 4 };
+
+function slugifyCategory(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 36) || 'custom_item';
+}
 
 function crmId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -685,7 +729,8 @@ route('GET', 'admin/crm/movements', async ({ request, env }) => {
 
   const rows = await query(
     env,
-    `SELECT m.id, m.kind, m.category, m.amount_cents, m.description, m.movement_date,
+    `SELECT m.id, m.kind, m.category, COALESCE(m.frequency, 'one_time') AS frequency,
+            m.amount_cents, m.description, m.movement_date,
             m.client_id, m.is_shared_profit, m.vendo_share_pct, m.linked_movement_id,
             m.created_at, c.full_name AS client_name
        FROM movements m
@@ -705,14 +750,28 @@ route('POST', 'admin/crm/movements', async ({ request, env }) => {
 
   const body = await readJson(request);
   const kind = str(body.kind, 10) === 'expense' ? 'expense' : 'income';
-  const category = str(body.category, 40);
+  const frequency = str(body.frequency, 20) === 'recurring' ? 'recurring' : 'one_time';
+  const newCategoryLabel = str(body.new_category_label, 60);
+  let category = str(body.category, 40);
+
+  const statements = [];
+  if (newCategoryLabel) {
+    category = slugifyCategory(newCategoryLabel);
+    statements.push({
+      sql: `INSERT OR IGNORE INTO custom_categories (id, kind, slug, label, frequency_default, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+      args: [crmId(), kind, category, newCategoryLabel, frequency],
+    });
+  }
+  if (!category) {
+    category = kind === 'expense' ? 'unexpected' : 'custom_income';
+  }
+
   const amountCents = crmUsdToCents(body.amount_usd);
   const movementDate = str(body.date, 10) || crmToday();
-  const description = str(body.description, 300) || null;
+  const description = str(body.description, 300) || (CRM_CATEGORY_NAMES[category] || newCategoryLabel || category);
   const clientId = str(body.client_id, 40) || null;
 
-  const allowed = kind === 'income' ? CRM_INCOME_CATEGORIES : CRM_EXPENSE_CATEGORIES;
-  if (!allowed.includes(category)) return fail(400, 'Categoría inválida para el tipo de movimiento');
   if (!amountCents || amountCents <= 0) return fail(400, 'El monto debe ser mayor a cero');
 
   const shared = kind === 'income' && CRM_SHARED_CATEGORIES.includes(category);
@@ -720,40 +779,33 @@ route('POST', 'admin/crm/movements', async ({ request, env }) => {
   if (shared && (vendoPct < 0 || vendoPct > 100)) return fail(400, 'Porcentaje inválido');
 
   const movementId = crmId();
-  const statements = [
+  statements.push(
     {
-      sql: `INSERT INTO movements (id, kind, category, amount_cents, description, movement_date, client_id, is_shared_profit, vendo_share_pct, created_by, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-      args: [movementId, kind, category, amountCents, description, movementDate, clientId, shared ? 1 : 0, vendoPct, auth.admin.id],
+      sql: `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, vendo_share_pct, created_by, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+      args: [movementId, kind, category, frequency, amountCents, description, movementDate, clientId, shared ? 1 : 0, vendoPct, String(auth.admin.id)],
     },
-    crmAuditStmt(auth.admin.id, 'movements', movementId, 'create', null, {
+    crmAuditStmt(String(auth.admin.id), 'movements', movementId, 'create', null, {
       kind,
       category,
+      frequency,
       amount_cents: amountCents,
       movement_date: movementDate,
     }),
-  ];
+  );
 
   if (shared) {
     const partnerId = crmId();
     const partnerCents = crmPartnerCents(amountCents, vendoPct);
     statements.push({
-      sql: `INSERT INTO movements (id, kind, category, amount_cents, description, movement_date, client_id, is_shared_profit, linked_movement_id, created_by, updated_at)
-            VALUES (?, 'expense', 'partner_payout', ?, ?, ?, ?, 0, ?, ?, datetime('now'))`,
-      args: [partnerId, partnerCents, `Pago a socio — ${category}`, movementDate, clientId, movementId, auth.admin.id],
+      sql: `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, linked_movement_id, created_by, updated_at)
+            VALUES (?, 'expense', 'partner_payout', 'one_time', ?, ?, ?, ?, 0, ?, ?, datetime('now'))`,
+      args: [partnerId, partnerCents, `Pago a socio — ${category}`, movementDate, clientId, movementId, String(auth.admin.id)],
     });
-    statements.push(
-      crmAuditStmt(auth.admin.id, 'movements', partnerId, 'create', null, {
-        kind: 'expense',
-        category: 'partner_payout',
-        amount_cents: partnerCents,
-        linked_movement_id: movementId,
-      }),
-    );
   }
 
   await transaction(env, statements);
-  return respond({ ok: true, movement_id: movementId });
+  return respond({ ok: true, movement_id: movementId, category });
 });
 
 route('DELETE', 'admin/crm/movements/:id', async ({ request, env, params }) => {
@@ -1124,6 +1176,535 @@ route('GET', 'admin/crm/notifications', async ({ request, env }) => {
   return respond({ ok: true, count: alerts.length, alerts });
 });
 
+/* ========================================================================== */
+/*  CATEGORÍAS PERSONALIZADAS & AGENTE INTELIGENTE "DO" CONECTADO A TURSO DB  */
+/* ========================================================================== */
+
+route('GET', 'admin/crm/categories', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  const categories = await query(
+    env,
+    'SELECT id, kind, slug, label, frequency_default, created_at FROM custom_categories ORDER BY created_at ASC',
+  );
+  return respond({ ok: true, categories });
+});
+
+route('POST', 'admin/crm/categories', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  const body = await readJson(request);
+  const kind = str(body.kind, 10) === 'income' ? 'income' : 'expense';
+  const label = str(body.label, 60);
+  if (!label) return fail(400, 'El nombre de la categoría es obligatorio');
+  const slug = slugifyCategory(body.slug || label);
+  const frequencyDefault = str(body.frequency_default, 20) === 'recurring' ? 'recurring' : 'one_time';
+  const id = crmId();
+  await execute(
+    env,
+    `INSERT OR REPLACE INTO custom_categories (id, kind, slug, label, frequency_default, created_at)
+     VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+    [id, kind, slug, label, frequencyDefault],
+  );
+  return respond({ ok: true, category: { id, kind, slug, label, frequency_default: frequencyDefault } });
+});
+
+route('DELETE', 'admin/crm/categories/:id', async ({ request, env, params }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  const id = str(params.id, 40);
+  await execute(env, 'DELETE FROM custom_categories WHERE id = ? OR slug = ?', [id, id]);
+  return respond({ ok: true });
+});
+
+route('GET', 'admin/crm/agent/state', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const [messages, memories, categories] = await Promise.all([
+    query(env, 'SELECT id, role, content, actions_json, created_at FROM do_chat_messages ORDER BY created_at ASC LIMIT 80'),
+    query(env, 'SELECT id, topic, content, created_at FROM do_agent_memory ORDER BY created_at DESC LIMIT 100'),
+    query(env, 'SELECT id, kind, slug, label, frequency_default FROM custom_categories ORDER BY created_at ASC'),
+  ]);
+
+  return respond({
+    ok: true,
+    messages: messages.map((m) => ({
+      ...m,
+      actions: m.actions_json ? JSON.parse(m.actions_json) : [],
+    })),
+    memories,
+    categories,
+  });
+});
+
+route('POST', 'admin/crm/agent/memory', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  const body = await readJson(request);
+  const content = str(body.content, 500);
+  const topic = str(body.topic, 40) || 'regla_negocio';
+  if (!content) return fail(400, 'El contenido es obligatorio');
+  const id = crmId();
+  await execute(
+    env,
+    "INSERT INTO do_agent_memory (id, topic, content, created_at) VALUES (?, ?, ?, datetime('now'))",
+    [id, topic, content],
+  );
+  return respond({ ok: true, memory: { id, topic, content } });
+});
+
+route('DELETE', 'admin/crm/agent/memory/:id', async ({ request, env, params }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  const id = str(params.id, 40);
+  await execute(env, 'DELETE FROM do_agent_memory WHERE id = ?', [id]);
+  return respond({ ok: true });
+});
+
+route('DELETE', 'admin/crm/agent/history', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+  await execute(env, 'DELETE FROM do_chat_messages');
+  return respond({ ok: true });
+});
+
+route('POST', 'admin/crm/agent/chat', async ({ request, env }) => {
+  const auth = await crmAuth(request, env);
+  if (!auth.ok) return fail(auth.status, auth.error);
+
+  const body = await readJson(request);
+  const userMessage = str(body.message, 1500);
+  if (!userMessage) return fail(400, 'Escribe un mensaje para Do');
+
+  // 1. Cargar snapshot completo y en tiempo real de Turso DB
+  const monthFrom = crmMonthStart(0);
+  const monthTo = crmMonthEnd(0);
+  const [clients, services, movements, customCats, memories, settings] = await Promise.all([
+    query(env, 'SELECT id, full_name, email, whatsapp_number, notes, is_active, created_at FROM clients ORDER BY full_name ASC'),
+    query(
+      env,
+      `SELECT cs.id, cs.client_id, cs.service_type, cs.payment_kind, cs.amount_cents, cs.status, cs.start_date,
+              m.id AS membership_id, m.next_due_date, m.billing_day, m.last_payment_date, m.status AS membership_status
+         FROM client_services cs
+         LEFT JOIN memberships m ON m.client_service_id = cs.id`,
+    ),
+    query(
+      env,
+      `SELECT m.id, m.kind, m.category, COALESCE(m.frequency, 'one_time') AS frequency,
+              m.amount_cents, m.description, m.movement_date, m.client_id, c.full_name AS client_name
+         FROM movements m
+         LEFT JOIN clients c ON c.id = m.client_id
+        ORDER BY m.movement_date DESC, m.created_at DESC
+        LIMIT 300`,
+    ),
+    query(env, 'SELECT id, kind, slug, label, frequency_default FROM custom_categories'),
+    query(env, 'SELECT id, topic, content FROM do_agent_memory ORDER BY created_at DESC LIMIT 50'),
+    queryOne(env, "SELECT * FROM settings WHERE id = 'global' LIMIT 1"),
+  ]);
+
+  const catLabels = { ...CRM_CATEGORY_NAMES };
+  for (const c of customCats) catLabels[c.slug] = c.label;
+
+  const norm = (s) =>
+    String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+
+  const textLower = norm(userMessage);
+  const actionsExecuted = [];
+  const replyParts = [];
+
+  // Helper para buscar cliente mencionado en el mensaje
+  function findMentionedClient(msgNorm) {
+    let best = null;
+    let bestLen = 0;
+    for (const c of clients) {
+      const n = norm(c.full_name);
+      if (n && msgNorm.includes(n) && n.length > bestLen) {
+        best = c;
+        bestLen = n.length;
+      } else {
+        const tokens = n.split(/\s+/).filter((w) => w.length >= 4);
+        for (const tk of tokens) {
+          if (msgNorm.includes(tk) && tk.length > bestLen) {
+            best = c;
+            bestLen = tk.length;
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  // Helper para extraer monto en USD ($10, 10$, 10 usd, 10 dolares, por 10)
+  function extractAmountUsd(rawText) {
+    const patterns = [
+      /\$\s*(\d+(?:[.,]\d{1,2})?)/i,
+      /(\d+(?:[.,]\d{1,2})?)\s*\$/i,
+      /(\d+(?:[.,]\d{1,2})?)\s*(?:usd|dolares|dolar|dlrs| verdes)/i,
+      /(?:de|por|monto|salio|costo|fueron|pago|pague|gaste)\s+\$?\s*(\d+(?:[.,]\d{1,2})?)/i,
+    ];
+    for (const re of patterns) {
+      const m = rawText.match(re);
+      if (m && m[1]) {
+        const val = parseFloat(m[1].replace(',', '.'));
+        if (val > 0 && val < 1000000) return val;
+      }
+    }
+    return null;
+  }
+
+  // Helper para inferir categoría de gasto o ingreso
+  function inferExpenseCategory(msgNorm) {
+    for (const c of customCats.filter((x) => x.kind === 'expense')) {
+      if (msgNorm.includes(norm(c.label)) || msgNorm.includes(c.slug)) return c.slug;
+    }
+    if (/(credito|token|recarga)/.test(msgNorm)) return 'ai_credits';
+    if (/(suscripcion|mensualidad|plan|software|herramienta|canva|notion|figma)/.test(msgNorm)) return 'software_sub';
+    if (/(ia|ai|kimi|claude|openai|gpt|cursor|gemini|api)/.test(msgNorm)) return 'ai_credits';
+    if (/(publicidad|ads|anuncio|meta|instagram|facebook|tiktok|campana|marketing)/.test(msgNorm)) return 'advertising';
+    if (/(nfc|tarjeta|etiqueta|carnet|chip|plastico)/.test(msgNorm)) return 'nfc_reinvestment';
+    if (/(dominio|hosting|servidor|cloudflare|namecheap|godaddy|dns)/.test(msgNorm)) return 'domains_servers';
+    if (/(socio|ali gomez|comision|fotografo)/.test(msgNorm)) return 'partner_payout';
+    if (/(ahorro|reserva|fondo)/.test(msgNorm)) return 'savings';
+    return 'unexpected';
+  }
+
+  function inferIncomeCategory(msgNorm) {
+    for (const c of customCats.filter((x) => x.kind === 'income')) {
+      if (msgNorm.includes(norm(c.label)) || msgNorm.includes(c.slug)) return c.slug;
+    }
+    if (/(mapa|maps|google|ficha|ubicacion)/.test(msgNorm)) return 'google_maps';
+    if (/(conecta|fidelizacion|club|vip|membresia)/.test(msgNorm)) return 'vendo_conecta_monthly';
+    if (/(hosting|mantenimiento|renovacion|dominio)/.test(msgNorm)) return 'hosting_monthly';
+    if (/(foto|fotografia|sesion|ali gomez)/.test(msgNorm)) return 'photography';
+    if (/(branding|marca|logo|diseno)/.test(msgNorm)) return 'branding';
+    if (/(implementacion|mejora|funcion|extra)/.test(msgNorm)) return 'feature_implementation';
+    if (/(suscripcion|retainer|mensual)/.test(msgNorm)) return 'subscription';
+    return 'web_sale';
+  }
+
+  // =========================================================================
+  // INTENCIÓN 1: AUTO-ENTRENAMIENTO / MEMORIA ("recuerda que...", "aprende que...")
+  // =========================================================================
+  const memoryMatch = userMessage.match(/(?:recuerda que|aprende que|guarda en tu memoria que|ten en cuenta que|nota mental:?|entrenate:?)\s+(.+)/i);
+  if (memoryMatch && memoryMatch[1]) {
+    const fact = memoryMatch[1].trim();
+    const memId = crmId();
+    await execute(
+      env,
+      "INSERT INTO do_agent_memory (id, topic, content, created_at) VALUES (?, 'regla_negocio', ?, datetime('now'))",
+      [memId, fact],
+    );
+    actionsExecuted.push({
+      type: 'memory_saved',
+      label: `Conocimiento guardado en Turso: "${fact}"`,
+    });
+    replyParts.push(`🧠 **¡Aprendido y guardado permanentemente en mi base de datos!**\nHe registrado la regla: *"${fact}"*. La tendré presente en todas las operaciones del panel.`);
+  }
+
+  // =========================================================================
+  // INTENCIÓN 2: CREAR CATEGORÍA PERSONALIZADA
+  // =========================================================================
+  const newCatMatch = userMessage.match(/(?:crea|anade|añade|agrega|registra)\s+(?:una\s+)?(?:nueva\s+)?categoria\s+(?:de\s+)?(gasto|egreso|ingreso|ganancia)s?\s+(?:llamada\s+|con nombre\s+)?["']?([^"'.\n]+)["']?/i);
+  if (newCatMatch) {
+    const kind = /ingreso|ganancia/i.test(newCatMatch[1]) ? 'income' : 'expense';
+    const label = newCatMatch[2].trim();
+    const slug = slugifyCategory(label);
+    const isRec = /fijo|mensual|recurrente/i.test(textLower) ? 'recurring' : 'one_time';
+    const id = crmId();
+    await execute(
+      env,
+      "INSERT OR REPLACE INTO custom_categories (id, kind, slug, label, frequency_default, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
+      [id, kind, slug, label, isRec],
+    );
+    catLabels[slug] = label;
+    actionsExecuted.push({
+      type: 'category_created',
+      label: `Categoría creada: ${label} (${kind === 'income' ? 'Ingreso' : 'Gasto'})`,
+    });
+    replyParts.push(`🏷️ He creado la categoría personalizada **${label}** (${kind === 'income' ? 'Ingreso' : 'Gasto'}) en Turso DB. Ya está disponible en todo el panel.`);
+  }
+
+  // =========================================================================
+  // INTENCIÓN 3: ELIMINAR / DESHACER MOVIMIENTO
+  // =========================================================================
+  if (/(elimina|borra|quita|deshaz|anula)\s+(el\s+)?(ultimo\s+movimiento|ultimo\s+gasto|ultimo\s+ingreso|ultimo\s+cobro)/i.test(textLower)) {
+    const targetKind = /gasto|egreso/.test(textLower) ? 'expense' : /ingreso|cobro/.test(textLower) ? 'income' : null;
+    const candidate = movements.find((m) => !targetKind || m.kind === targetKind);
+    if (candidate) {
+      await execute(env, 'DELETE FROM movements WHERE id = ? OR linked_movement_id = ?', [candidate.id, candidate.id]);
+      actionsExecuted.push({
+        type: 'movement_deleted',
+        label: `Eliminado: ${candidate.description || candidate.category} (${crmFormatUsd(candidate.amount_cents)})`,
+      });
+      replyParts.push(`🗑️ He eliminado de la base de datos el movimiento **${candidate.description || catLabels[candidate.category] || candidate.category}** por **${crmFormatUsd(candidate.amount_cents)}** del ${candidate.movement_date}.`);
+    } else {
+      replyParts.push(`⚠️ No encontré ningún movimiento reciente que coincida para eliminar.`);
+    }
+  }
+
+  // =========================================================================
+  // INTENCIÓN 4: CREAR UN NUEVO CLIENTE
+  // =========================================================================
+  const createClientMatch = userMessage.match(/(?:crea|anade|añade|agrega|registra)\s+(?:al\s+|un\s+)?(?:nuevo\s+)?cliente\s+["']?([A-Za-zÁÉÍÓÚáéíóúÑñ0-9 .&-]{2,50})["']?/i);
+  if (createClientMatch) {
+    let rawName = createClientMatch[1]
+      .replace(/\s+(?:con\s+whatsapp|con\s+correo|con\s+telefono|whatsapp|correo|email|y\s+asignale|por\s+\$).*/i, '')
+      .trim();
+    if (rawName && rawName.length >= 2) {
+      const emailMatch = userMessage.match(/([a-zA-Z0-9._+-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+      const phoneMatch = userMessage.match(/(?:\+?(\d{10,15}))/);
+      const clientId = crmId();
+      const emailVal = emailMatch ? emailMatch[1] : null;
+      const waVal = phoneMatch ? phoneMatch[1] : null;
+      await execute(
+        env,
+        "INSERT INTO clients (id, full_name, email, whatsapp_number, notes, is_active, updated_at) VALUES (?, ?, ?, ?, 'Creado por Asistente Do', 1, datetime('now'))",
+        [clientId, rawName.toUpperCase(), emailVal, waVal],
+      );
+      const newClientObj = { id: clientId, full_name: rawName.toUpperCase(), email: emailVal, whatsapp_number: waVal };
+      clients.unshift(newClientObj);
+      actionsExecuted.push({
+        type: 'client_created',
+        label: `Cliente añadido: ${rawName.toUpperCase()}`,
+      });
+      replyParts.push(`👤 **¡Cliente registrado con éxito!**\nHe añadido a **${rawName.toUpperCase()}** en la base de datos${waVal ? ` (WhatsApp: ${waVal})` : ''}${emailVal ? ` (Email: ${emailVal})` : ''}.`);
+    }
+  }
+
+  // =========================================================================
+  // INTENCIÓN 5: REGISTRAR GASTO (ÚNICO O FIJO) O INGRESO / PAGO
+  // =========================================================================
+  const amountUsd = extractAmountUsd(userMessage);
+  const isExpenseIntent =
+    /\b(gasto|gastos|egreso|egresos|gaste|gastamos|pague|pagamos|compre|compramos|tuvimos que pagar|tuve que pagar|invertimos|imprevisto)\b/i.test(textLower) ||
+    (!/\b(ingreso|ganancia|cobro|nos pago|cliente)\b/i.test(textLower) &&
+      /\b(recarga|creditos?\s+ia|tokens?|etiquetas?\s+nfc|publicidad|ads)\b/i.test(textLower));
+
+  const isIncomeIntent =
+    !isExpenseIntent &&
+    (/(registra|anade|añade|agrega|anota|marca)\b.*\b(ingreso|ganancia|cobro|pago|venta|abono)/i.test(textLower) ||
+      /\b(ingreso|ganancia|cobro|cobramos|ganamos|nos pago|pago|abono|venta)\b.*(?:\$|\d)/i.test(textLower));
+
+  if (amountUsd && (isExpenseIntent || isIncomeIntent)) {
+    const kind = isExpenseIntent ? 'expense' : 'income';
+    const frequency = /(fijo|mensual|recurrente|todos los meses|suscripcion)/i.test(textLower) ? 'recurring' : 'one_time';
+    const category = kind === 'expense' ? inferExpenseCategory(textLower) : inferIncomeCategory(textLower);
+    const mentionedClient = findMentionedClient(textLower);
+    const amountCents = Math.round(amountUsd * 100);
+    const movId = crmId();
+    const today = crmToday();
+
+    // Limpiar descripción legible
+    let desc = userMessage
+      .replace(/^(?:do\s*,?\s*)?(?:por favor\s*)?(?:registra|anade|añade|agrega|anota|coloca)\s+(?:un\s+)?(?:nuevo\s+)?(?:gasto|egreso|ingreso|ganancia|cobro|pago)\s*(?:unico|fijo|mensual)?\s*(?:de\s+\$?\d+(?:[.,]\d+)?\s*(?:usd|dolares|\$)?\s*)?(?:por|porque|de|para)?\s*/i, '')
+      .trim();
+    if (!desc || desc.length < 3) {
+      desc = `${catLabels[category] || category}${mentionedClient ? ` — ${mentionedClient.full_name}` : ''}`;
+    } else {
+      desc = desc.charAt(0).toUpperCase() + desc.slice(1, 180);
+    }
+
+    await execute(
+      env,
+      `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, is_shared_profit, created_by, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))`,
+      [movId, kind, category, frequency, amountCents, desc, today, mentionedClient ? mentionedClient.id : null, String(auth.admin.id)],
+    );
+
+    // Actualizar array en memoria para que el cálculo inferior ya incluya este movimiento
+    movements.unshift({
+      id: movId,
+      kind,
+      category,
+      frequency,
+      amount_cents: amountCents,
+      description: desc,
+      movement_date: today,
+      client_id: mentionedClient ? mentionedClient.id : null,
+      client_name: mentionedClient ? mentionedClient.full_name : null,
+    });
+
+    const freqLabel = frequency === 'recurring' ? 'Fijo / Mensual' : 'Único por el momento';
+    actionsExecuted.push({
+      type: kind === 'expense' ? 'expense_created' : 'income_created',
+      label: `${kind === 'expense' ? 'Gasto' : 'Ingreso'} (${freqLabel}): ${crmFormatUsd(amountCents)} — ${catLabels[category] || category}`,
+    });
+
+    replyParts.push(
+      `${kind === 'expense' ? '💸 **¡Gasto registrado en Turso DB!**' : '💰 **¡Ingreso registrado en Turso DB!**'}\n` +
+        `- **Concepto:** ${desc}\n` +
+        `- **Monto:** ${crmFormatUsd(amountCents)} USD\n` +
+        `- **Categoría:** ${catLabels[category] || category}\n` +
+        `- **Modalidad:** ${freqLabel}` +
+        (mentionedClient ? `\n- **Cliente vinculado:** ${mentionedClient.full_name}` : ''),
+    );
+  }
+
+  // =========================================================================
+  // INTENCIÓN 6: MARCAR COBRO PENDIENTE COMO PAGADO SIN MONTO EXPLÍCITO
+  // =========================================================================
+  if (!amountUsd && /(marca|registra)\s+como\s+pagado/i.test(textLower)) {
+    const mentionedClient = findMentionedClient(textLower);
+    if (mentionedClient) {
+      const clientSvc = services.find((s) => s.client_id === mentionedClient.id);
+      if (clientSvc) {
+        const movId = crmId();
+        const today = crmToday();
+        const cat = CRM_SERVICE_TO_CATEGORY[clientSvc.service_type] || 'web_sale';
+        await execute(
+          env,
+          `INSERT INTO movements (id, kind, category, frequency, amount_cents, description, movement_date, client_id, client_service_id, created_by, updated_at)
+           VALUES (?, 'income', ?, 'recurring', ?, ?, ?, ?, ?, ?, datetime('now'))`,
+          [movId, cat, clientSvc.amount_cents, `Pago — ${clientSvc.service_type}`, today, mentionedClient.id, clientSvc.id, String(auth.admin.id)],
+        );
+        if (clientSvc.membership_id) {
+          const nextDue = crmNextDue(clientSvc.billing_day || 1);
+          await execute(
+            env,
+            "UPDATE memberships SET last_payment_date = ?, next_due_date = ?, status = 'al_dia', updated_at = datetime('now') WHERE id = ?",
+            [today, nextDue, clientSvc.membership_id],
+          );
+        }
+        actionsExecuted.push({
+          type: 'payment_marked',
+          label: `Cobro pagado: ${mentionedClient.full_name} (${crmFormatUsd(clientSvc.amount_cents)})`,
+        });
+        replyParts.push(`✅ He marcado como pagado el servicio de **${mentionedClient.full_name}** por **${crmFormatUsd(clientSvc.amount_cents)} USD** y actualizado su fecha de próximo vencimiento.`);
+      }
+    }
+  }
+
+  // =========================================================================
+  // CÁLCULO ANALÍTICO EN TIEMPO REAL SOBRE TODA LA BASE DE DATOS
+  // =========================================================================
+  let monthIncome = 0;
+  let monthExpense = 0;
+  let totalIncomeAllTime = 0;
+  let totalExpenseAllTime = 0;
+  const paidByClient = new Map();
+  const expenseByCat = new Map();
+  const incomeByCat = new Map();
+
+  for (const m of movements) {
+    const amt = num(m.amount_cents, 0);
+    const inThisMonth = m.movement_date >= monthFrom && m.movement_date <= monthTo;
+    if (m.kind === 'income') {
+      totalIncomeAllTime += amt;
+      if (inThisMonth) monthIncome += amt;
+      if (m.client_id) {
+        paidByClient.set(m.client_id, (paidByClient.get(m.client_id) || 0) + amt);
+      }
+      incomeByCat.set(m.category, (incomeByCat.get(m.category) || 0) + amt);
+    } else {
+      totalExpenseAllTime += amt;
+      if (inThisMonth) monthExpense += amt;
+      expenseByCat.set(m.category, (expenseByCat.get(m.category) || 0) + amt);
+    }
+  }
+
+  // Si no se ejecutó ninguna acción de escritura o si el usuario también hizo una pregunta, generamos respuesta analítica
+  const mentionedClientForQuery = findMentionedClient(textLower);
+
+  if (replyParts.length === 0) {
+    if (mentionedClientForQuery && /(cuanto|pagado|pago|movimiento|historial|debe|info|estado|cliente)/i.test(textLower)) {
+      const c = mentionedClientForQuery;
+      const clientMovs = movements.filter((m) => m.client_id === c.id && m.kind === 'income');
+      const totalPaid = paidByClient.get(c.id) || 0;
+      const clientSvcs = services.filter((s) => s.client_id === c.id);
+      const movList = clientMovs.length
+        ? clientMovs.map((m) => `  • **${crmFormatUsd(m.amount_cents)}** — ${m.description || catLabels[m.category] || m.category} (${m.movement_date})`).join('\n')
+        : '  • Aún no registra pagos individuales.';
+      const svcList = clientSvcs.length
+        ? clientSvcs.map((s) => `  • ${ s.service_type } (${crmFormatUsd(s.amount_cents)} · ${s.payment_kind === 'recurring' ? 'Mensual' : 'Único'})`).join('\n')
+        : '  • Sin servicios recurrentes activos.';
+
+      replyParts.push(
+        `📊 **Ficha en vivo de ${c.full_name}:**\n` +
+          `- **Total histórico pagado a VENDO:** **${crmFormatUsd(totalPaid)} USD**\n` +
+          `- **Contacto:** ${c.email || c.whatsapp_number || 'No registrado'}\n\n` +
+          `**Historial de pagos (${clientMovs.length}):**\n${movList}\n\n` +
+          `**Servicios asociados:**\n${svcList}`,
+      );
+    } else if (/(clientes|cada cliente|quienes son|lista de clientes|cuanto pago cada)/i.test(textLower)) {
+      const lines = clients.map((c) => {
+        const paid = paidByClient.get(c.id) || 0;
+        return `• **${c.full_name}**: ${crmFormatUsd(paid)} USD pagados`;
+      });
+      replyParts.push(
+        `👥 **Estado de Clientes en la Base de Datos (${clients.length} registrados):**\n\n` +
+          lines.join('\n') +
+          `\n\n💰 **Facturación histórica acumulada:** **${crmFormatUsd(totalIncomeAllTime)} USD**.`,
+      );
+    } else if (/(gasto|egreso|en que se gasto|cuanto gastamos)/i.test(textLower)) {
+      const expMovs = movements.filter((m) => m.kind === 'expense');
+      const expLines = expMovs.length
+        ? expMovs.slice(0, 12).map((m) => `• **${crmFormatUsd(m.amount_cents)}** (${m.frequency === 'recurring' ? '🔁 Fijo' : '⚡ Único'}) — ${m.description || catLabels[m.category] || m.category} [${m.movement_date}]`).join('\n')
+        : '• No hay gastos registrados todavía.';
+      replyParts.push(
+        `💸 **Análisis de Gastos (Egresos) en Turso DB:**\n` +
+          `- **Gastos de este mes:** **${crmFormatUsd(monthExpense)} USD**\n` +
+          `- **Gastos históricos totales:** **${crmFormatUsd(totalExpenseAllTime)} USD**\n\n` +
+          `**Últimos gastos registrados:**\n${expLines}\n\n` +
+          `💡 *Tip: Puedes decirme "Registra un gasto único de $10 por créditos de IA" o "Añade un gasto fijo de $19 de suscripción" y lo guardaré al instante.*`,
+      );
+    } else {
+      // Reporte ejecutivo integral por defecto
+      const netMonth = monthIncome - monthExpense;
+      const netAllTime = totalIncomeAllTime - totalExpenseAllTime;
+      const topClients = clients
+        .map((c) => ({ name: c.full_name, paid: paidByClient.get(c.id) || 0 }))
+        .filter((x) => x.paid > 0)
+        .sort((a, b) => b.paid - a.paid)
+        .slice(0, 5)
+        .map((x) => `• **${x.name}**: ${crmFormatUsd(x.paid)}`)
+        .join('\n') || '• Sin pagos registrados aún.';
+
+      const memNote = memories.length
+        ? `\n\n🧠 **Reglas activas en mi memoria (${memories.length}):**\n` + memories.slice(0, 3).map((m) => `• *${m.content}*`).join('\n')
+        : '';
+
+      replyParts.push(
+        `🤖 **Hola, soy Do · Tu Asistente Operativo conectado en vivo a Turso DB.**\n\n` +
+          `📈 **Balance de este mes (${monthFrom.slice(0, 7)}):**\n` +
+          `- **Ingresos del mes:** +${crmFormatUsd(monthIncome)} USD\n` +
+          `- **Gastos del mes:** −${crmFormatUsd(monthExpense)} USD\n` +
+          `- **Ganancia neta del mes:** **${crmFormatUsd(netMonth)} USD**\n\n` +
+          `🏛️ **Histórico General en Base de Datos:**\n` +
+          `- **Ingresos totales:** ${crmFormatUsd(totalIncomeAllTime)} USD | **Gastos totales:** ${crmFormatUsd(totalExpenseAllTime)} USD | **Neto:** **${crmFormatUsd(netAllTime)} USD**\n` +
+          `- **Clientes activos (${clients.length}):**\n${topClients}` +
+          memNote +
+          `\n\n⚡ **¿Qué deseas que haga por ti ahora?**\n` +
+          `Puedes ordenarme: *"Registra un gasto único de $10 por créditos de tokens"*, *"Registra un ingreso de $100 de Kimtoug"*, *"Añade al cliente X"*, o *"Recuerda que..."*`,
+      );
+    }
+  }
+
+  const finalReply = replyParts.join('\n\n');
+
+  // Guardar conversación en Turso DB
+  await batch(env, [
+    {
+      sql: "INSERT INTO do_chat_messages (id, role, content, actions_json, created_at) VALUES (?, 'user', ?, NULL, datetime('now'))",
+      args: [crmId(), userMessage],
+    },
+    {
+      sql: "INSERT INTO do_chat_messages (id, role, content, actions_json, created_at) VALUES (?, 'assistant', ?, ?, datetime('now'))",
+      args: [crmId(), finalReply, actionsExecuted.length ? JSON.stringify(actionsExecuted) : null],
+    },
+  ]);
+
+  return respond({
+    ok: true,
+    reply: finalReply,
+    actions: actionsExecuted,
+  });
+});
+
 function pathSegments(context) {
   const { params, request } = context;
   if (Array.isArray(params && params.path)) return params.path.map(String);
@@ -1143,7 +1724,7 @@ export async function onRequest(context) {
   if (method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
-      headers: { Allow: 'GET, POST, OPTIONS', 'Cache-Control': 'no-store' },
+      headers: { Allow: 'GET, POST, PUT, DELETE, OPTIONS', 'Cache-Control': 'no-store' },
     });
   }
 

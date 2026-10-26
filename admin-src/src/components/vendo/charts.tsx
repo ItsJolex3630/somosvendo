@@ -87,13 +87,70 @@ export function CashflowChart() {
 }
 
 export function IncomeBreakdown() {
-  const { incomeByCategory } = useVendo();
+  const { incomeByCategory, expenseByCategory, customCategories } = useVendo();
+  const [mode, setMode] = useState<'income' | 'expense'>('income');
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
-  const data = incomeByCategory
+  const source = mode === 'income' ? incomeByCategory : expenseByCategory;
+  const data = source
     .filter((c) => c.total_cents > 0)
-    .map((c) => ({ name: categoryLabel(c.category), value: c.total_cents / 100 }));
+    .map((c) => ({ name: categoryLabel(c.category, customCategories), value: c.total_cents / 100 }));
   const total = data.reduce((s, d) => s + d.value, 0);
-  const colors = [incomeColor, 'var(--teal)', expenseColor, 'var(--blue)', 'var(--warning)'];
-  return <section className="panel"><div className="panel-head"><div><h2>Ingresos por categoría</h2><p>El valor de lo que hacemos.</p></div><ArrowUpRight size={14} className="text-muted-foreground"/></div><div className="service-donut">{ready && data.length > 0 && <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={data} dataKey="value" innerRadius={61} outerRadius={74} paddingAngle={5} stroke="none" cornerRadius={3} startAngle={90} endAngle={-270}>{data.map((d, i) => <Cell key={d.name} fill={colors[i % colors.length]}/>)}</Pie><Tooltip content={({active,payload}) => active && payload?.length ? <div className="chart-tooltip">{payload[0]?.name}<br/>{money(Number(payload[0]?.value))}</div> : null}/></PieChart></ResponsiveContainer>}<div className="donut-center"><span>Total de ingresos</span><strong>{money(total)}</strong><span className="mt-1">USD</span></div></div><div className="service-list">{data.length ? data.map(d => <div key={d.name} className="service-row"><i/><span>{d.name}</span><span>{total ? Math.round(d.value / total * 100) : 0}%</span></div>) : <div className="empty">Sin ingresos este mes.</div>}</div></section>;
+  const colors = mode === 'income'
+    ? [incomeColor, 'var(--teal)', expenseColor, 'var(--blue)', 'var(--warning)']
+    : [expenseColor, 'var(--warning)', 'var(--blue)', 'var(--teal)', incomeColor];
+  return (
+    <section className="panel">
+      <div className="panel-head">
+        <div>
+          <h2>{mode === 'income' ? 'Ingresos por categoría' : 'Gastos por categoría'}</h2>
+          <p>{mode === 'income' ? 'El valor de lo que hacemos.' : 'En qué se invierte y gasta.'}</p>
+        </div>
+        <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-[9px]">
+          <button
+            type="button"
+            onClick={() => setMode('income')}
+            className={`px-2 py-1 rounded ${mode === 'income' ? 'bg-primary text-primary-foreground font-medium' : 'text-muted-foreground'}`}
+          >
+            Ingresos
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('expense')}
+            className={`px-2 py-1 rounded ${mode === 'expense' ? 'bg-destructive text-white font-medium' : 'text-muted-foreground'}`}
+          >
+            Gastos
+          </button>
+        </div>
+      </div>
+      <div className="service-donut">
+        {ready && data.length > 0 && (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={data} dataKey="value" innerRadius={61} outerRadius={74} paddingAngle={5} stroke="none" cornerRadius={3} startAngle={90} endAngle={-270}>
+                {data.map((d, i) => <Cell key={d.name} fill={colors[i % colors.length]} />)}
+              </Pie>
+              <Tooltip content={({ active, payload }) => active && payload?.length ? <div className="chart-tooltip">{payload[0]?.name}<br />{money(Number(payload[0]?.value))}</div> : null} />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+        <div className="donut-center">
+          <span>{mode === 'income' ? 'Total de ingresos' : 'Total de gastos'}</span>
+          <strong>{money(total)}</strong>
+          <span className="mt-1">USD</span>
+        </div>
+      </div>
+      <div className="service-list">
+        {data.length ? data.map((d) => (
+          <div key={d.name} className="service-row">
+            <i />
+            <span>{d.name}</span>
+            <span>{total ? Math.round((d.value / total) * 100) : 0}%</span>
+          </div>
+        )) : (
+          <div className="empty">{mode === 'income' ? 'Sin ingresos este mes.' : 'Sin gastos este mes.'}</div>
+        )}
+      </div>
+    </section>
+  );
 }

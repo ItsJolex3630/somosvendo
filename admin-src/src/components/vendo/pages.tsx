@@ -36,7 +36,7 @@ function cobroTone(status: string): string {
 }
 
 export function TransactionsPage({ billing = false }: { billing?: boolean }) {
-  const { transactions, clients, search, settings, markPaid } = useVendo();
+  const { transactions, clients, search, settings, markPaid, customCategories } = useVendo();
   const { cobros } = useVendo();
   const [filter, setFilter] = useState('Todos');
   const [category, setCategory] = useState('Todas');
@@ -124,7 +124,8 @@ export function TransactionsPage({ billing = false }: { billing?: boolean }) {
           <Input value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} placeholder="Buscar..." aria-label="Buscar en movimientos" className="max-w-44" />
           <select aria-label="Filtrar por categoría" value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="Todas">Todas las categorías</option>
-            {ALL_CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}
+            {ALL_CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c, customCategories)}</option>)}
+            {customCategories.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
           </select>
           <Button variant="secondary" size="sm" onClick={() => exportCsv(rows, clients)}><Download />CSV</Button>
         </div>

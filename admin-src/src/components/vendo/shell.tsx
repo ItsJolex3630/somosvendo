@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router';
-import { LayoutDashboard, ArrowLeftRight, Users, CreditCard, Settings, Search, Bell, ChevronDown, ArrowUpRight, CircleHelp, ShieldCheck, X } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, Users, CreditCard, Settings, Search, Bell, ChevronDown, ArrowUpRight, CircleHelp, ShieldCheck, X, Sparkles } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { useVendo } from './store';
 import { useAuth } from './auth';
 import { VendoModals } from './modals';
+import { DoAdminAssistant } from './do-agent';
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -19,7 +20,7 @@ export function Brand() {
 }
 
 export function VendoShell({ children }: { children: ReactNode }) {
-  const { search, setSearch, alerts, error, refresh } = useVendo();
+  const { search, setSearch, alerts, error, refresh, setDoOpen } = useVendo();
   const { email } = useAuth();
   const [notifications, setNotifications] = useState(false);
   const initials = (email || 'V').slice(0, 2).toUpperCase();
@@ -34,6 +35,9 @@ export function VendoShell({ children }: { children: ReactNode }) {
         <div className="nav-heading">WORKSPACE</div>
         <nav>{nav.map((n) => <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-link"><n.icon size={18} strokeWidth={1.6} />{n.label}</Link>)}</nav>
         <div className="nav-heading mt-8">SOPORTE</div>
+        <Button variant="ghost" className="justify-start gap-3 text-primary font-medium" onClick={() => setDoOpen(true)}>
+          <Sparkles size={18} />Agente Do IA<ArrowUpRight className="ml-auto" />
+        </Button>
         <Button variant="ghost" className="justify-start gap-3 text-muted-foreground" onClick={() => { setNotifications(true); }}><CircleHelp size={18} />Centro de ayuda<ArrowUpRight className="ml-auto" /></Button>
         <div className="workspace-chip">
           <div className="flex items-center gap-3">
@@ -89,6 +93,7 @@ export function VendoShell({ children }: { children: ReactNode }) {
         {nav.map((n) => <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="dock-link"><span className="dock-icon"><n.icon strokeWidth={1.6} /></span>{n.label}</Link>)}
       </nav>
       <VendoModals />
+      <DoAdminAssistant />
     </>
   );
 }

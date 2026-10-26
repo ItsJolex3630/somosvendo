@@ -7,13 +7,14 @@
 // preservando orden y atributos. No toca _headers ni el código de la app.
 //
 // Uso: node scripts/externalize-inline-scripts.mjs   (procesa dist/client/**/*.html)
-import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, rmSync, cpSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const clientDir = join(root, "..", "dist", "client");
+const adminOutDir = join(root, "..", "..", "admin");
 const assetsDir = join(clientDir, "assets");
 mkdirSync(assetsDir, { recursive: true });
 
@@ -53,3 +54,8 @@ for (const file of walk(clientDir)) {
 }
 
 console.log(`[externalize-inline-scripts] ${totalTags} script(s) across ${totalFiles} file(s).`);
+
+rmSync(adminOutDir, { recursive: true, force: true });
+mkdirSync(adminOutDir, { recursive: true });
+cpSync(clientDir, adminOutDir, { recursive: true });
+console.log(`[externalize-inline-scripts] synced dist/client -> ../admin/`);
