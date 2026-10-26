@@ -1,7 +1,6 @@
 (function initCarousels(){
-function setupCarousel(selector){
-const track=document.querySelector(selector);
-if(!track)return;
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function setupCarousel(track){
 const slides=track.querySelectorAll('.carousel-slide');
 const dots=track.querySelectorAll('.dot');
 const prevBtn=track.querySelector('.carousel-btn.prev');
@@ -11,8 +10,8 @@ let timer=null;
 function showSlide(index){slides.forEach((s,i)=>s.classList.toggle('active',i===index));dots.forEach((d,i)=>d.classList.toggle('active',i===index));currentIndex=index;}
 function nextSlide(){showSlide((currentIndex+1)%slides.length);}
 function prevSlide(){showSlide((currentIndex-1+slides.length)%slides.length);}
-function startAutoPlay(){stopAutoPlay();timer=setInterval(nextSlide,3500);}
-function stopAutoPlay(){if(timer)clearInterval(timer);}
+function startAutoPlay(){stopAutoPlay();if(!reduceMotion&&slides.length>1)timer=setInterval(nextSlide,3500);}
+function stopAutoPlay(){if(timer)clearInterval(timer);timer=null;}
 nextBtn?.addEventListener('click',()=>{nextSlide();startAutoPlay();});
 prevBtn?.addEventListener('click',()=>{prevSlide();startAutoPlay();});
 dots.forEach((dot,i)=>{dot.addEventListener('click',()=>{showSlide(i);startAutoPlay();});});
@@ -20,8 +19,7 @@ track.addEventListener('mouseenter',stopAutoPlay);
 track.addEventListener('mouseleave',startAutoPlay);
 startAutoPlay();
 }
-setupCarousel('#gtech-carousel');
-setupCarousel('#jolie-carousel');
+document.querySelectorAll('.carousel').forEach(setupCarousel);
 })();
 
 // Navegación de Slider de Clientes (Desktop buttons + Scroll check)
@@ -122,6 +120,10 @@ hero_cta_advisor:'Hablar con un asesor',
 hero_cta_services:'Ver servicios',
 do_bubble:'Soy Do. Te ayudo a optimizar tu marca.',
 do_alt:'Do, la mascota de VENDO',
+do_action:'Conocer los servicios de VENDO',
+do_msg_whatsapp:'Soy Do. ¿Hablamos por WhatsApp para tu negocio? 🚀',
+do_msg_maps:'Tu negocio en Google Maps en tiempo récord 📍',
+do_msg_services:'Diseño moderno sin plantillas rotas ✨',
 maps_tag:'SIMULADOR EN VIVO · IMPACTO INMEDIATO',
 maps_h2:'La diferencia entre que te encuentren o pasen de largo.',
 maps_p:'El 82% de las personas en San Diego y Valencia buscan en Google antes de salir a comprar o pedir delivery. Un perfil abandonado ahuyenta a los clientes; un perfil optimizado genera confianza y ventas inmediatas.',
@@ -159,6 +161,8 @@ service2_h3:'Google Maps',
 service2_p:'Perfil de Empresa creado, verificado y optimizado para que los vecinos y visitantes te encuentren primero.',
 service3_h3:'Marketing local',
 service3_p:'Reseñas reales, WhatsApp Business, catálogos digitales y embudos de venta simples. También te ayudamos a vender en Yummy cuando aplica.',
+service4_h3:'Fotografía comercial y de producto',
+service4_p:'En alianza exclusiva con el fotógrafo profesional <strong>Ali Gómez</strong>, capturamos tus platos, productos, instalaciones y equipo con calidad editorial. Las fotos perfectas para que tu página web, tu menú digital y tu perfil de Google Maps conviertan el doble.',
 bento_tag:'POR QUÉ VENDO · ESTÁNDAR PROFESIONAL',
 bento_h2:'Tu marca merece más que un enlace prestado.',
 bento_subtitle:'Muchos ofrecen páginas web; muy pocos resuelven de verdad la presencia y visibilidad de tu negocio. Así es como trabajamos:',
@@ -191,6 +195,32 @@ gtech_link:'Visitar gtechs.us',
 jolie_badge:'🛍️ Catálogo Digital & Venta Directa',
 jolie_desc:'Plataforma web para catálogo interactivo de perfumería exclusiva. Diseñada para navegación ágil en dispositivos móviles y canalización inmediata de pedidos a WhatsApp.',
 jolie_link:'Visitar jolie-fragrances',
+kimtoug_badge:'👕 Moda & Streetwear · Tienda Online',
+kimtoug_desc:'Plataforma de catálogo y exhibición digital para marca de indumentaria urbana. Enfoque visual brutalista y conexión directa a compras por WhatsApp.',
+kimtoug_link:'Visitar Kimtoug',
+famesa_badge:'⚙️ Suministros Industriales & Suite Administrativa',
+famesa_desc:'Portal corporativo para ferretería mayorista y desarrollo de panel de control administrativo a medida (CRM e Inventario) para agilizar operaciones comerciales.',
+famesa_link:'Visitar Famesa C.A',
+masafacil_badge:'🥟 Alimentos Artesanales & Retención de Clientes',
+masafacil_desc:'Presencia digital y plataforma de fidelización para fábrica de masas para pastelitos y empanadas, con catálogo de productos y pedidos recurrentes.',
+masafacil_link:'Visitar Masa Fácil',
+aligomez_badge:'📸 Fotografía Profesional · Aliado Estratégico',
+aligomez_desc:'Portafolio de fotografía comercial y publicitaria de alta gama para productos, locales y marcas. Aliado oficial de VENDO para producción visual.',
+aligomez_link:'Visitar Ali Gómez Fotografía',
+aria_kimtoug_gallery:'Galería de Kimtoug',
+aria_famesa_gallery:'Galería de Famesa C.A',
+aria_masafacil_gallery:'Galería de Masa Fácil',
+aria_aligomez_gallery:'Galería de Ali Gómez Fotografía',
+kimtoug1_alt:'Kimtoug - Catálogo de moda urbana',
+kimtoug2_alt:'Kimtoug - Exhibición digital de productos',
+kimtoug3_alt:'Kimtoug - Identidad de marca',
+famesa1_alt:'Famesa C.A - Portal corporativo',
+famesa2_alt:'Famesa C.A - Suite administrativa',
+masafacil1_alt:'Masa Fácil - Catálogo de alimentos artesanales',
+masafacil2_alt:'Masa Fácil - Plataforma de fidelización',
+masafacil3_alt:'Masa Fácil - Identidad de marca',
+aligomez1_alt:'Ali Gómez - Fotografía comercial',
+aligomez2_alt:'Ali Gómez - Fotografía publicitaria de producto',
 contact_tag:'PASO SIGUIENTE · SIN COMPROMISO',
 contact_h2:'Cuéntanos de tu negocio y te armamos el plan ideal.',
 contact_p:'Sin letras pequeñas ni tecnicismos confusos. Analizamos tu situación actual y te decimos exactamente cómo poner tu negocio en el mapa digital.',
@@ -302,6 +332,10 @@ hero_cta_advisor:'Talk to an advisor',
 hero_cta_services:'View services',
 do_bubble:"I'm Do. I'm here to help optimize your brand.",
 do_alt:'Do, the VENDO mascot',
+do_action:'Explore VENDO services',
+do_msg_whatsapp:"I'm Do. Shall we chat on WhatsApp about your business? 🚀",
+do_msg_maps:'Your business on Google Maps in record time 📍',
+do_msg_services:'Modern design without broken templates ✨',
 maps_tag:'LIVE SIMULATOR · PROVEN IMPACT',
 maps_h2:'The difference between getting found or skipped.',
 maps_p:'82% of shoppers search on Google before visiting a store or ordering delivery. An abandoned profile drives customers away; an optimized profile builds instant trust and sales.',
@@ -339,6 +373,8 @@ service2_h3:'Google Maps',
 service2_p:'Business Profile claimed, verified, and ranked so local neighbors and visitors find you first.',
 service3_h3:'Local Marketing',
 service3_p:'Genuine customer reviews, WhatsApp Business setup, digital catalogs, and conversion-focused funnels.',
+service4_h3:'Commercial and product photography',
+service4_p:'In an exclusive partnership with professional photographer <strong>Ali Gómez</strong>, we capture your dishes, products, premises, and team with editorial quality. The right photos for your website, digital menu, and Google Maps profile to convert twice as much.',
 bento_tag:'WHY VENDO · PROFESSIONAL STANDARD',
 bento_h2:'Your brand deserves more than a borrowed link.',
 bento_subtitle:'Many build websites; very few actually solve your visibility and customer acquisition. Here is how we do it:',
@@ -371,6 +407,32 @@ gtech_link:'Visit gtechs.us',
 jolie_badge:'🛍️ Digital Catalog & Direct Sales',
 jolie_desc:'Interactive e-commerce web platform for exclusive fragrance collections. Built for smooth mobile browsing and instant WhatsApp order placement.',
 jolie_link:'Visit jolie-fragrances',
+kimtoug_badge:'👕 Fashion & Streetwear · Online Store',
+kimtoug_desc:'Digital catalog and showcase for an urban clothing brand. Brutalist visual direction with direct WhatsApp purchasing.',
+kimtoug_link:'Visit Kimtoug',
+famesa_badge:'⚙️ Industrial Supplies & Management Suite',
+famesa_desc:'Corporate portal for a wholesale hardware supplier and a custom management dashboard (CRM and Inventory) to streamline commercial operations.',
+famesa_link:'Visit Famesa C.A',
+masafacil_badge:'🥟 Artisan Food & Customer Retention',
+masafacil_desc:'Digital presence and loyalty platform for a pastry and empanada dough factory, with a product catalog and recurring orders.',
+masafacil_link:'Visit Masa Fácil',
+aligomez_badge:'📸 Professional Photography · Strategic Partner',
+aligomez_desc:'High-end commercial and advertising photography portfolio for products, premises, and brands. Official VENDO partner for visual production.',
+aligomez_link:'Visit Ali Gómez Photography',
+aria_kimtoug_gallery:'Kimtoug gallery',
+aria_famesa_gallery:'Famesa C.A gallery',
+aria_masafacil_gallery:'Masa Fácil gallery',
+aria_aligomez_gallery:'Ali Gómez Photography gallery',
+kimtoug1_alt:'Kimtoug - Urban fashion catalog',
+kimtoug2_alt:'Kimtoug - Digital product showcase',
+kimtoug3_alt:'Kimtoug - Brand identity',
+famesa1_alt:'Famesa C.A - Corporate portal',
+famesa2_alt:'Famesa C.A - Management suite',
+masafacil1_alt:'Masa Fácil - Artisan food catalog',
+masafacil2_alt:'Masa Fácil - Loyalty platform',
+masafacil3_alt:'Masa Fácil - Brand identity',
+aligomez1_alt:'Ali Gómez - Commercial photography',
+aligomez2_alt:'Ali Gómez - Product advertising photography',
 contact_tag:'NEXT STEP · NO OBLIGATION',
 contact_h2:"Tell us about your business and we'll craft the right plan.",
 contact_p:'No confusing technical jargon. We analyze your current digital presence and show you exactly how to scale your brand.',
@@ -538,6 +600,109 @@ if(detected!==currentLang)applyLanguage(detected);
 })
 .catch(()=>{});
 }
+})();
+
+(function initDo(){
+const doEl=document.querySelector('.do');
+const bubble=doEl?.querySelector('.bub');
+if(!doEl||!bubble)return;
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const interactiveMessages=['do_msg_whatsapp','do_msg_maps','do_msg_services'];
+const scrollMessages=[
+['google-maps','do_msg_maps'],
+['servicios','do_msg_services'],
+['clientes','do_msg_whatsapp']
+];
+let messageIndex=0;
+let currentKey='do_bubble';
+let messageTimer;
+let bounceTimer;
+let scrollQueued=false;
+
+function setMessage(key,immediate=false){
+if(key===currentKey&&!immediate)return;
+currentKey=key;
+clearTimeout(messageTimer);
+bubble.classList.toggle('is-changing',!reduceMotion&&!immediate);
+messageTimer=setTimeout(()=>{
+bubble.textContent=window.VENDO_I18N.t(key);
+bubble.classList.remove('is-changing');
+},reduceMotion||immediate?0:150);
+}
+
+function rotateMessage(){
+messageIndex=(messageIndex+1)%interactiveMessages.length;
+setMessage(interactiveMessages[messageIndex]);
+}
+
+doEl.addEventListener('pointerenter',rotateMessage);
+doEl.addEventListener('pointerdown',e=>{
+if(e.pointerType!=='mouse'){doEl.classList.add('is-reacting');rotateMessage();}
+});
+doEl.addEventListener('pointermove',e=>{
+if(reduceMotion||e.pointerType!=='mouse')return;
+const rect=doEl.getBoundingClientRect();
+const x=(e.clientX-rect.left)/rect.width-.5;
+const y=(e.clientY-rect.top)/rect.height-.5;
+doEl.style.setProperty('--do-tilt-x',`${-y*10}deg`);
+doEl.style.setProperty('--do-tilt-y',`${x*12}deg`);
+});
+doEl.addEventListener('pointerleave',()=>{
+doEl.classList.remove('is-reacting');
+doEl.style.setProperty('--do-tilt-x','0deg');
+doEl.style.setProperty('--do-tilt-y','0deg');
+});
+doEl.addEventListener('click',()=>{
+clearTimeout(bounceTimer);
+doEl.classList.remove('is-clicked');
+void doEl.offsetWidth;
+doEl.classList.add('is-clicked');
+bounceTimer=setTimeout(()=>doEl.classList.remove('is-clicked'),550);
+document.getElementById('servicios')?.scrollIntoView({behavior:reduceMotion?'auto':'smooth'});
+});
+
+function updateScrollMessage(){
+let key='do_bubble';
+scrollMessages.forEach(([id,message])=>{
+const section=document.getElementById(id);
+if(section&&section.getBoundingClientRect().top<=window.innerHeight*.55)key=message;
+});
+setMessage(key);
+scrollQueued=false;
+}
+window.addEventListener('scroll',()=>{
+if(!scrollQueued){scrollQueued=true;requestAnimationFrame(updateScrollMessage);}
+},{passive:true});
+document.addEventListener('vendo:langchange',()=>setMessage(currentKey,true));
+
+const eyes=[...doEl.querySelectorAll('.do-eyes span')];
+function randomizeBlink(){
+const duration=2800+Math.random()*3500;
+eyes.forEach(eye=>{eye.style.animationDuration=`${duration}ms`;});
+}
+if(!reduceMotion&&eyes.length){
+const delay=-Math.random()*4500;
+eyes.forEach(eye=>{eye.style.animationDelay=`${delay}ms`;});
+randomizeBlink();
+eyes[0].addEventListener('animationiteration',randomizeBlink);
+}
+updateScrollMessage();
+})();
+
+(function initScrollReveals(){
+const elements=document.querySelectorAll('.client-card,.row,.bento-card,.conecta-card');
+if(!elements.length)return;
+if(!('IntersectionObserver'in window)||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+elements.forEach(el=>el.classList.add('in-view'));
+return;
+}
+document.documentElement.classList.add('reveal-ready');
+const observer=new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting){entry.target.classList.add('in-view');observer.unobserve(entry.target);}
+});
+},{threshold:.12,rootMargin:'0px 0px -40px'});
+elements.forEach(el=>observer.observe(el));
 })();
 
 // ==========================================

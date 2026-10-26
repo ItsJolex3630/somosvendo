@@ -305,3 +305,35 @@ footer{padding:36px 0;color:var(--mut);font-size:14px}footer .wrap{display:flex;
   .nav-actions{gap:6px}
   .nav-link{font-size:14px;padding:6px 2px}
 }
+
+nav{animation:navReveal .55s ease both}
+.hero h1{animation:heroReveal .65s .12s ease both}
+.hero p{animation:heroReveal .65s .24s ease both}
+.hero .cta{animation:heroReveal .65s .36s ease both}
+.do{width:min(100%,320px);padding:0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;animation:doHeroIn .7s .3s cubic-bezier(.34,1.56,.64,1) both;-webkit-tap-highlight-color:transparent}
+.do:focus-visible{outline:3px solid var(--lime);outline-offset:6px;border-radius:20px}
+.do-character{position:relative;width:fit-content;max-width:100%;margin:auto;perspective:700px;animation:doFloat 4.5s ease-in-out infinite}
+.do img{transform:rotateX(var(--do-tilt-x,0deg)) rotateY(var(--do-tilt-y,0deg));transition:transform .18s ease;transform-style:preserve-3d}
+.do-eyes{position:absolute;inset:0;pointer-events:none}
+.do-eyes span{--eye-rotation:8deg;position:absolute;left:44%;top:36.7%;width:4.9%;height:9%;border-radius:45%;background:var(--ink);transform:rotate(var(--eye-rotation)) scaleY(0);animation:doBlink 4.5s infinite}
+.do-eyes span+span{--eye-rotation:-7deg;left:57.1%;top:35.5%}
+.do:hover .bub,.do.is-reacting .bub{transform:translateY(-2px) rotate(-1deg)}
+.do.is-clicked .do-character{animation:doBounce .55s ease}
+.bub{display:flex;align-items:center;min-height:68px;transition:transform .2s ease,opacity .15s ease}
+.bub.is-changing{opacity:0}
+.reveal-ready .client-card,.reveal-ready .row,.reveal-ready .bento-card,.reveal-ready .conecta-card{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s}
+.reveal-ready .client-card.in-view,.reveal-ready .row.in-view,.reveal-ready .bento-card.in-view,.reveal-ready .conecta-card.in-view{opacity:1;transform:none}
+.reveal-ready .client-card.in-view:hover{transform:translateY(-3px)}
+
+@keyframes doBlink{0%,91%,94%,100%{transform:rotate(var(--eye-rotation)) scaleY(0)}92%,93%{transform:rotate(var(--eye-rotation)) scaleY(1)}}
+@keyframes doFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes doBounce{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-16px) scale(1.04)}70%{transform:translateY(2px) scale(.98)}}
+@keyframes doHeroIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes heroReveal{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes navReveal{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;scroll-behavior:auto!important}
+  .reveal-ready .client-card,.reveal-ready .row,.reveal-ready .bento-card,.reveal-ready .conecta-card{opacity:1;transform:none}
+  .do img{transform:none!important}
+}
